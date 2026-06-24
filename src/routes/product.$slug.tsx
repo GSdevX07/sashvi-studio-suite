@@ -40,7 +40,7 @@ export const Route = createFileRoute("/product/$slug")({
 });
 
 function ProductPage() {
-  const product = Route.useLoaderData() as ReturnType<typeof getProduct> & object;
+  const product = Route.useLoaderData() as NonNullable<ReturnType<typeof getProduct>>;
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const images = product.images && product.images.length ? product.images : [product.image, product.image, product.image];
