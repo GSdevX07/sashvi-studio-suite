@@ -1,9 +1,36 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Eye, Heart, ShoppingBag } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { formatINR } from "@/lib/products";
+import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
+import { useAuth } from "@/lib/auth-context";
 
 export function ProductCard({ product }: { product: Product }) {
+  const { addItem } = useCart();
+  const { toggle, isWishlisted } = useWishlist();
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const wishlisted = isWishlisted(product.id);
+
+  function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      navigate({ to: "/my-account" });
+      return;
+    }
+    addItem({ id: product.id, name: product.name, price: product.price, image: product.image });
+  }
+
+  function handleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      navigate({ to: "/my-account" });
+      return;
+    }
+    toggle(product.id);
+  }
+
   return (
     <div className="group relative flex flex-col">
       <Link
@@ -33,16 +60,31 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-between opacity-100 transition">
           <div className="pointer-events-auto flex gap-1.5">
-            <button aria-label="Quick view" onClick={(e) => { e.preventDefault(); window.location.href = `/product/${product.slug}`; }} className="grid h-9 w-9 place-items-center rounded-full bg-background/95 text-foreground shadow-soft hover:bg-accent hover:text-accent-foreground">
+            <button
+              aria-label="Quick view"
+              onClick={(e) => { e.preventDefault(); navigate({ to: "/product/$slug", params: { slug: product.slug } }); }}
+              className="grid h-9 w-9 place-items-center rounded-full bg-background/95 text-foreground shadow-soft hover:bg-accent hover:text-accent-foreground"
+            >
               <Eye className="h-4 w-4" />
             </button>
-            <button aria-label="Wishlist" className="grid h-9 w-9 place-items-center rounded-full bg-background/95 text-foreground shadow-soft hover:bg-accent hover:text-accent-foreground" onClick={(e) => { e.preventDefault(); const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]'); if (!wishlist.includes(product.id)) { wishlist.push(product.id); localStorage.setItem('wishlist', JSON.stringify(wishlist)); } }}>
-              <Heart className="h-4 w-4" />
+            <button
+              aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              onClick={handleWishlist}
+              className={`grid h-9 w-9 place-items-center rounded-full shadow-soft transition ${
+                wishlisted
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-background/95 text-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${wishlisted ? "fill-current" : ""}`} />
             </button>
           </div>
-          <button className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-2 text-[0.7rem] font-medium uppercase tracking-widest text-background shadow-soft hover:bg-accent hover:text-accent-foreground" onClick={(e) => { e.preventDefault(); const cart = JSON.parse(localStorage.getItem('cart') || '[]'); const existing = cart.find((item: any) => item.id === product.id); if (existing) { existing.qty += 1; } else { cart.push({ id: product.id, name: product.name, price: product.price, image: product.image, qty: 1 }); } localStorage.setItem('cart', JSON.stringify(cart)); alert('Added to cart!'); }}>
-              <ShoppingBag className="h-3.5 w-3.5" /> Add
-            </button>
+          <button
+            onClick={handleAddToCart}
+            className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-2 text-[0.7rem] font-medium uppercase tracking-widest text-background shadow-soft hover:bg-accent hover:text-accent-foreground"
+          >
+            <ShoppingBag className="h-3.5 w-3.5" /> Add
+          </button>
         </div>
       </Link>
 

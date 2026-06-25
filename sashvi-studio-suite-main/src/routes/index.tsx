@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Star, Sparkles, Play } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Star, Sparkles, Play, ChevronDown } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { PRODUCTS, formatINR } from "@/lib/products";
@@ -282,105 +283,90 @@ function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="container-luxe py-20">
-        <SectionHeading eyebrow="Help Center" title="Frequently Asked Questions" />
-        <div className="grid gap-8">
-          {[
-            {
-              question: "Are your sarees authentic?",
-              answer: (
-                <>
-                  Yes. We carefully curate authentic sarees, including Mysore Silk, Mul Cotton, Handloom, and Artisanal collections sourced from skilled weavers and trusted artisans across India.
-                  <br />
-                  <br />
-                  We offer both Pure Silk and Semi Silk sarees, depending on the collection. The fabric composition and product specifications are clearly mentioned in each product description.
-                </>
-              ),
-            },
-            {
-              question: "Do all sarees come with a blouse piece?",
-              answer: (
-                <>
-                  No. While many sarees include a matching blouse piece, several Mul Cotton sarees and selected handcrafted collections may not come with a blouse piece. Please refer to the product description for complete details.
-                </>
-              ),
-            },
-            {
-              question: "Do you offer stitched blouses?",
-              answer: "Yes. We offer ready-to-wear stitched blouses and curated saree & stitched blouse combos on selected products.",
-            },
-            {
-              question: "What payment methods do you accept?",
-              answer: (
-                <>
-                  We accept UPI, Credit Cards, Debit Cards, Net Banking, Wallets, and Cash on Delivery (COD) for eligible locations.
-                  <br />
-                  <br />
-                  A 10% advance payment is required to confirm all COD orders. The remaining amount can be paid at the time of delivery. Applicable shipping charges and COD handling charges will be displayed during checkout.
-                </>
-              ),
-            },
-            {
-              question: "Do you offer free shipping?",
-              answer: "Yes. We offer Free Shipping across India on all prepaid orders above ₹1,000. Applicable shipping charges for other orders will be displayed during checkout.",
-            },
-            {
-              question: "How long does delivery take?",
-              answer: "Orders are generally dispatched within 1–3 business days and delivered within 3–7 business days across India, depending on your location. A tracking link will be shared via Email or WhatsApp once your order is dispatched.",
-            },
-            {
-              question: "Do you accept returns or exchanges?",
-              answer: (
-                <>
-                  We do not accept returns.
-                  <br />
-                  <br />
-                  Exchanges are offered only if you receive a damaged product or an incorrect product, and the request must be raised within 7 days from the date of delivery.
-                  <br />
-                  <br />
-                  A clear, continuous, and uncut unboxing video recorded from the moment the sealed package is opened is mandatory for all damage or exchange claims. Claims without an unboxing video cannot be accepted.
-                </>
-              ),
-            },
-            {
-              question: "Will the saree colour be exactly the same as shown?",
-              answer: "We strive to display our products as accurately as possible. However, slight colour variations may occur due to photography, lighting, or individual screen settings.",
-            },
-            {
-              question: "Do handcrafted and naturally dyed sarees require special care?",
-              answer: (
-                <>
-                  Yes. Handloom, block-printed, embroidered, and handcrafted sarees may have slight variations in weave, print, texture, or embroidery, which are natural characteristics and not defects.
-                  <br />
-                  <br />
-                  Some sarees dyed using natural indigo or vegetable dyes may release excess colour during the first few washes. We recommend washing them separately with a mild detergent, avoiding prolonged soaking, and drying them in the shade.
-                </>
-              ),
-            },
-            {
-              question: "Can I request additional photos or videos before placing an order?",
-              answer: "Absolutely! If you'd like additional photos, close-up details, or a drape video of any product, feel free to contact us via WhatsApp or Instagram before placing your order.",
-            },
-            {
-              question: "How can I contact Sashvi Studio?",
-              answer: (
-                <>
-                  For any queries or assistance, please reach out to us at:
-                  <br />
-                  <strong>Email:</strong> sashvistudio26@gmail.com
-                </>
-              ),
-            },
-          ].map((faq) => (
-            <div key={faq.question} className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft">
-              <h3 className="font-semibold text-foreground">{faq.question}</h3>
-              <div className="mt-4 text-sm leading-relaxed text-muted-foreground">{faq.answer}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <FaqSection />
 
       <InstagramFeed feed={getActiveInstagramFeed()} />
     </Layout>
+  );
+}
+
+const FAQ_ITEMS = [
+  {
+    question: "Are your sarees authentic?",
+    answer: "Yes. We carefully curate authentic sarees, including Mysore Silk, Mul Cotton, Handloom, and Artisanal collections sourced from skilled weavers and trusted artisans across India. We offer both Pure Silk and Semi Silk sarees. Fabric composition is clearly mentioned in each product description.",
+  },
+  {
+    question: "Do all sarees come with a blouse piece?",
+    answer: "No. While many sarees include a matching blouse piece, several Mul Cotton sarees and selected handcrafted collections may not. Please refer to the product description for complete details.",
+  },
+  {
+    question: "Do you offer stitched blouses?",
+    answer: "Yes. We offer ready-to-wear stitched blouses and curated saree & stitched blouse combos on selected products.",
+  },
+  {
+    question: "What payment methods do you accept?",
+    answer: "We accept UPI, Credit Cards, Debit Cards, Net Banking, Wallets, and Cash on Delivery (COD) for eligible locations. A 10% advance payment is required to confirm all COD orders. The remaining amount can be paid at the time of delivery.",
+  },
+  {
+    question: "Do you offer free shipping?",
+    answer: "Yes. We offer Free Shipping across India on all prepaid orders above ₹1,000. Applicable shipping charges for other orders will be displayed during checkout.",
+  },
+  {
+    question: "How long does delivery take?",
+    answer: "Orders are generally dispatched within 1–3 business days and delivered within 3–7 business days across India, depending on your location. A tracking link will be shared via Email or WhatsApp once your order is dispatched.",
+  },
+  {
+    question: "Do you accept returns or exchanges?",
+    answer: "We do not accept returns. Exchanges are offered only if you receive a damaged or incorrect product, and the request must be raised within 7 days from delivery. A clear, continuous, uncut unboxing video is mandatory for all exchange claims.",
+  },
+  {
+    question: "Will the saree colour be exactly the same as shown?",
+    answer: "We strive to display our products as accurately as possible. However, slight colour variations may occur due to photography, lighting, or individual screen settings.",
+  },
+  {
+    question: "Do handcrafted and naturally dyed sarees require special care?",
+    answer: "Yes. Handloom, block-printed, embroidered, and handcrafted sarees may have slight variations in weave, print, or texture — these are natural characteristics, not defects. Some sarees may release excess colour during the first few washes; wash separately with mild detergent and dry in shade.",
+  },
+  {
+    question: "Can I request additional photos or videos before placing an order?",
+    answer: "Absolutely! If you'd like additional photos, close-up details, or a drape video of any product, feel free to contact us via WhatsApp or Instagram before placing your order.",
+  },
+  {
+    question: "How can I contact Sashvi Studio?",
+    answer: "For any queries or assistance, please reach out to us at: Email — sashvistudio26@gmail.com",
+  },
+];
+
+function FaqSection() {
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+
+  return (
+    <section className="container-luxe py-20">
+      <SectionHeading eyebrow="Help Center" title="Frequently Asked Questions" />
+      <div className="divide-y divide-border rounded-[1.5rem] border border-border bg-card shadow-soft overflow-hidden">
+        {FAQ_ITEMS.map((faq) => {
+          const isOpen = openFaq === faq.question;
+          return (
+            <div key={faq.question}>
+              <button
+                onClick={() => setOpenFaq(isOpen ? null : faq.question)}
+                className="flex w-full items-center justify-between gap-4 px-8 py-6 text-left hover:bg-secondary/50 transition-colors"
+                aria-expanded={isOpen}
+              >
+                <span className="font-semibold text-foreground">{faq.question}</span>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {isOpen && (
+                <div className="px-8 pb-6 text-sm leading-relaxed text-muted-foreground">
+                  {faq.answer}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

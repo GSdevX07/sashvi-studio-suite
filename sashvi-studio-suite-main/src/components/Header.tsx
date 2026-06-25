@@ -1,12 +1,15 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, Menu, Search, ShoppingBag, X, User } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Logo } from "./Logo";
 import {
   SAREE_CATEGORIES,
   JEWELLERY_CATEGORIES,
   COMBO_CATEGORIES,
 } from "@/lib/products";
+import { useAuth } from "@/lib/auth-context";
+import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 
 const NAV = [
   { label: "Home", to: "/" },
@@ -46,6 +49,18 @@ function MegaPanel({ type }: { type: "sarees" | "jewellery" | "combos" }) {
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const { isLoggedIn } = useAuth();
+  const { count } = useCart();
+  const { ids } = useWishlist();
+  const navigate = useNavigate();
+
+  function handleProtectedLink(to: "/cart" | "/wishlist") {
+    if (!isLoggedIn) {
+      navigate({ to: "/my-account", search: { redirect: to } });
+    } else {
+      navigate({ to });
+    }
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -85,12 +100,30 @@ export function Header() {
           <Link to="/my-account" aria-label="Account" className="rounded-full p-2 hover:bg-secondary" title="My Account">
             <User className="h-5 w-5" />
           </Link>
-          <Link to="/wishlist" aria-label="Wishlist" className="rounded-full p-2 hover:bg-secondary">
+          <button
+            aria-label="Wishlist"
+            onClick={() => handleProtectedLink("/wishlist")}
+            className="relative rounded-full p-2 hover:bg-secondary"
+          >
             <Heart className="h-5 w-5" />
-          </Link>
-          <Link to="/cart" aria-label="Cart" className="relative rounded-full p-2 hover:bg-secondary">
+            {ids.length > 0 && (
+              <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[0.6rem] font-semibold text-accent-foreground">
+                {ids.length}
+              </span>
+            )}
+          </button>
+          <button
+            aria-label="Cart"
+            onClick={() => handleProtectedLink("/cart")}
+            className="relative rounded-full p-2 hover:bg-secondary"
+          >
             <ShoppingBag className="h-5 w-5" />
-          </Link>
+            {count > 0 && (
+              <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[0.6rem] font-semibold text-accent-foreground">
+                {count}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 

@@ -6,16 +6,6 @@ import { CategoryShell } from "@/components/CategoryShell";
 
 type Search = { tag?: string };
 
-const JEWELLERY_THUMBNAILS = [
-  { name: 'Necklaces', image: '/necklacethumbnail.jpeg' },
-  { name: 'Long Haaram', image: '/longhaaramthumbnail.jpeg' },
-  { name: 'Bridal Sets', image: '/bridalsetthumbnail.jpeg' },
-  { name: 'Earrings&Jhumkas', image: '/jhumkathumbnail.jpeg' },
-  { name: 'Jadau kundan jewellery', image: '/JadauKundanJewellerythumbnail.jpeg' },
-  { name: 'Jewellery Under ₹599', image: '/budgetstorejewelleryunder599.png' },
-  { name: 'Other Jewellery', image: '/otherjewellerythumbnail.jpeg' },
-];
-
 export const Route = createFileRoute("/jewellery")({
   validateSearch: (s: Record<string, unknown>): Search => ({ tag: typeof s.tag === "string" ? s.tag : undefined }),
   head: () => ({
@@ -31,34 +21,29 @@ function JewelleryPage() {
   const { tag } = Route.useSearch();
   const all = byCategory("jewellery");
   const products = tag ? all.filter((p) => p.tags.includes(tag)) : all;
-  const showCategories = !tag;
-  
+
   return (
     <Layout>
-      {showCategories ? (
-        <CategoryShell
-          eyebrow="Heritage Jewellery"
-          title="Jewellery"
-          description="South Indian imitation jewellery — temple necklaces, long haarams, jhumkas, and bridal sets — crafted to complete every look."
-          filters={JEWELLERY_CATEGORIES}
-          basePath="/jewellery"
-        />
-      ) : (
-        <CategoryShell
-          eyebrow="Heritage Jewellery"
-          title={tag || "Jewellery"}
-          description="Curated collection of beautiful jewellery for every occasion."
-          filters={JEWELLERY_CATEGORIES}
-          activeTag={tag}
-          basePath="/jewellery"
-        >
+      <CategoryShell
+        eyebrow="Heritage Jewellery"
+        title={tag || "All Jewellery"}
+        description="South Indian imitation jewellery — temple necklaces, long haarams, jhumkas, and bridal sets — crafted to complete every look."
+        filters={JEWELLERY_CATEGORIES}
+        activeTag={tag}
+        basePath="/jewellery"
+      >
+        {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
-        </CategoryShell>
-      )}
+        ) : (
+          <div className="py-16 text-center text-muted-foreground">
+            No products found in this category yet. Check back soon!
+          </div>
+        )}
+      </CategoryShell>
     </Layout>
   );
 }

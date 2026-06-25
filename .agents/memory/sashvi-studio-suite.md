@@ -1,35 +1,38 @@
 ---
 name: Sashvi Studio Suite
-description: Key decisions and quirks for the sashvi-studio-suite-main admin panel project.
+description: Key decisions and quirks for the sashvi-studio-suite-main project (e-commerce frontend + backend).
 ---
 
 ## Stack
-- TanStack Start (React SSR) + Vite, port 5000
+- Frontend: TanStack Start (React SSR) + Vite, port 5000
+- Backend: Express at `sashvi-studio-suite-main/backend/`, port 3000
 - Server entry: `src/server.ts` — routes `/api/*` to `handleApiRequest` in `src/lib/api.server.ts`
-- Admin panel: `src/routes/admin.tsx` (single-file component ~1900 lines)
-- In-memory data store in `api.server.ts` (no DB persistence yet)
-- `imagekit` npm package (Node.js SDK, NOT `imagekit-javascript`) installed in sashvi-studio-suite-main/
 
-## Credentials (env var names, not values)
-- JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
-- IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT
-- VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
-- EMAIL_FROM
+## API connectivity
+- Frontend calls backend via Vite proxy: `/backend-api/*` → `http://localhost:3000/*`
+- `src/lib/backend.ts` has `API_BASE_URL = "/backend-api"` (relative, goes through proxy)
+- Direct `localhost:3000` from the browser does NOT work in Replit — always use the proxy path
+- Auth token storage key: `sashvi_auth_access_token` (AUTH_STORAGE_KEY in backend.ts)
+
+## Credentials (env var names only)
+- JWT_SECRET, ADMIN_PASSWORD, IMAGEKIT_PRIVATE_KEY
+- VITE_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_KEY
+
+## Auth / Cart / Wishlist contexts
+- `src/lib/auth-context.tsx` — AuthProvider + useAuth (checks localStorage for token)
+- `src/lib/cart-context.tsx` — CartProvider + useCart (reads/writes localStorage "cart" key)
+- `src/lib/wishlist-context.tsx` — WishlistProvider + useWishlist (reads/writes "wishlist" key)
+- All three providers wrap the app in `src/routes/__root.tsx` inside QueryClientProvider
+
+## Backend trust proxy
+- `app.set('trust proxy', 1)` is required in backend/src/index.ts
+- **Why:** Replit proxies through an intermediary, so X-Forwarded-For headers are always present. Without trust proxy, express-rate-limit throws ValidationError.
 
 ## Key design decisions
-- NAV has no "Banners" section (removed per user request)
-- Product form: two modes (sarees vs jewellery) with different field sets. Tags = subcategory styles. Categories = main type [sarees/jewellery/combos]
-- Saree fields: fabricType (ComboBox), sareeLength (default 5.5m), blousePiece (Yes/No), occasionWear, workType
-- Jewellery fields: weight (grams), material (ComboBox), occasionWear, workType
-- Color variants: dynamic list with color/stock/originalPrice/salePrice
-- Multiple image upload: sequential POSTs to /api/admin/upload-image, first URL = primary image
-- Reviews: Approve + Delete only (no Reject button shown to admin, and no notification sent to user on delete)
-- Instagram feed: uses `linkedProducts: [{name, url}]` array (not single `linkedProduct` string)
-- Coupons: include `category` field (All/Sarees/Jewellery/Combos) + edit via PUT
-- Settings: storeName, contactNumber, email, address, freeDeliveryAbove (default 1000), deliveryCharge, gatewayFee — NO razorpayKey or imageKitUrl
-- Inventory: inline stock editing (input field + save button, no window.prompt)
-- Order detail: modal with subtotal/delivery/gatewayFee/total breakdown + status update + invoice download
-- Invoice download: generates HTML file client-side (Blob URL)
-- Dashboard stats: all computed live from orders/products/customers state
-
-**Why imagekit (not imagekit-javascript):** imagekit-javascript is a browser SDK that may use browser APIs. The `imagekit` npm package is the official Node.js server-side SDK for private-key uploads.
+- Cart/wishlist pages show auth guard (login prompt) when user is not signed in
+- Clicking cart/wishlist header icons redirects to /my-account when not logged in
+- CategoryShell children prop is optional — always renders product grid (no dual category-grid / product-grid mode)
+- Sarees/jewellery pages show ALL products when no tag is selected (not a category thumbnail grid)
+- FAQ on homepage is an accordion (one open at a time, answers hidden by default)
+- "Back to Storefront" link appears on every non-home page via Layout component
+- ProductCard uses CartContext + WishlistContext (no raw localStorage manipulation)
