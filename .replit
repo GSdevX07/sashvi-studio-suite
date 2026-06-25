@@ -18,6 +18,10 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start backend"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -30,9 +34,25 @@ waitForPort = 5000
 [workflows.workflow.metadata]
 outputType = "webview"
 
+[[workflows.workflow]]
+name = "Start backend"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd sashvi-studio-suite-main/backend && npm run dev"
+waitForPort = 3000
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
 
 [userenv]
 
@@ -42,6 +62,8 @@ VITE_SUPABASE_URL = "https://zzudwxxkwscgiakjiexz.supabase.co"
 IMAGEKIT_PUBLIC_KEY = "public_7AAtMlwbYycz58Vm+ffxsNkbRy4="
 IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/qncajau4w"
 EMAIL_FROM = "Sashvi Studio <orders@sashvistudio.in>"
+VITE_API_BASE_URL = "http://localhost:3000"
+SUPABASE_URL = "https://zzudwxxkwscgiakjiexz.supabase.co"
 
 [deployment]
 deploymentTarget = "autoscale"
