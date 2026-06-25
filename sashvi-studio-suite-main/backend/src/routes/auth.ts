@@ -5,7 +5,6 @@ import { randomBytes } from 'crypto';
 import { supabase } from '../lib/supabase';
 import { sendEmail } from '../lib/email';
 import { signAccess, signRefresh } from '../utils/jwt';
-import fetch from 'node-fetch';
 
 export const authRouter = express.Router();
 

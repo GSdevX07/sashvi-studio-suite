@@ -5,7 +5,14 @@ import { calculateOrderTotals } from '../lib/checkout';
 
 export const paymentsRouter = express.Router();
 
-const razor = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID || '', key_secret: process.env.RAZORPAY_KEY_SECRET || '' });
+function getRazorpay() {
+  const key_id = process.env.RAZORPAY_KEY_ID || '';
+  const key_secret = process.env.RAZORPAY_KEY_SECRET || '';
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay keys not configured');
+  }
+  return new Razorpay({ key_id, key_secret });
+}
 
 paymentsRouter.post('/razorpay/create', async (req, res) => {
   const { orderId, amountType } = req.body; // amountType: 'full' or 'advance'
@@ -19,6 +26,7 @@ paymentsRouter.post('/razorpay/create', async (req, res) => {
 
   const opts = { amount: amountPaise, currency: 'INR', receipt: `${orderId}`, payment_capture: 1 };
   try {
+    const razor = getRazorpay();
     const rOrder = await razor.orders.create(opts as any);
     return res.json({ ok: true, razorOrder: rOrder });
   } catch (e: any) {
