@@ -1,5 +1,4 @@
 import { createHmac } from "crypto";
-import { INSTAGRAM_FEED, InstagramFeedItem } from "./instagram";
 import { PRODUCTS, type Category } from "./products";
 import { uploadImageToImageKit } from "./imagekit.server";
 import { ADMIN_EMAIL, ADMIN_PASSWORD, JWT_SECRET } from "./env.server";
@@ -8,13 +7,55 @@ if (!JWT_SECRET) {
   throw new Error("Missing JWT_SECRET environment variable.");
 }
 
-const activeFeedItems = [...INSTAGRAM_FEED];
+type ColorVariant = {
+  id: string;
+  color: string;
+  stock: number;
+  originalPrice: number;
+  salePrice: number;
+};
+
+type InstagramLinkedProduct = { name: string; url: string };
+
+type InstagramFeedItem = {
+  id: string;
+  mediaType: "post" | "reel";
+  url: string;
+  thumbnail: string;
+  linkedProducts: InstagramLinkedProduct[];
+  caption: string;
+  isActive: boolean;
+};
+
+type CouponItem = {
+  id: string;
+  code: string;
+  category: string;
+  discountType: "fixed" | "percent";
+  discountValue: number;
+  expiry: string;
+  usageLimit: number;
+  minimumPurchase: number;
+  active: boolean;
+};
 
 const adminProducts = PRODUCTS.map((product) => ({
   ...product,
   sku: `SS-${product.id}`,
   productType: product.categories[0] ?? "sarees",
   active: true,
+  salePrice: product.price,
+  originalPrice: product.compareAt ?? product.price,
+  fabricType: "",
+  material: "",
+  occasionWear: "",
+  workType: "",
+  sareeLength: product.categories.includes("sarees") ? 5.5 : undefined,
+  blousePiece: product.categories.includes("sarees") ? "Yes" : undefined,
+  weight: undefined as number | undefined,
+  featured: product.isFeatured ?? false,
+  buyOneGetOne: false,
+  colorVariants: [] as ColorVariant[],
 }));
 
 let adminCategories = [
@@ -29,42 +70,9 @@ let adminCategories = [
 ];
 
 let adminOrders = [
-  {
-    id: "#SS-2418",
-    customer: "Ananya R.",
-    item: "Emerald Kanjivaram Silk Saree",
-    total: 8499,
-    status: "Processing",
-    paymentStatus: "Paid",
-    deliveryCharges: 100,
-    gatewayFee: 255,
-    address: "3/24, South Avenue, Chennai",
-    orderDate: "2026-06-20",
-  },
-  {
-    id: "#SS-2417",
-    customer: "Lakshmi V.",
-    item: "Ruby Temple Necklace Set",
-    total: 3299,
-    status: "Shipped",
-    paymentStatus: "Paid",
-    deliveryCharges: 100,
-    gatewayFee: 99,
-    address: "12, MG Road, Bangalore",
-    orderDate: "2026-06-18",
-  },
-  {
-    id: "#SS-2416",
-    customer: "Sneha K.",
-    item: "Bagru Mul Cotton Saree",
-    total: 1799,
-    status: "Delivered",
-    paymentStatus: "Paid",
-    deliveryCharges: 100,
-    gatewayFee: 54,
-    address: "7, Lake View, Hyderabad",
-    orderDate: "2026-06-15",
-  },
+  { id: "#SS-2418", customer: "Ananya R.", item: "Emerald Kanjivaram Silk Saree", total: 8499, status: "Processing", paymentStatus: "Paid", deliveryCharges: 100, gatewayFee: 255, address: "3/24, South Avenue, Chennai", orderDate: "2026-06-20" },
+  { id: "#SS-2417", customer: "Lakshmi V.", item: "Ruby Temple Necklace Set", total: 3299, status: "Shipped", paymentStatus: "Paid", deliveryCharges: 100, gatewayFee: 99, address: "12, MG Road, Bangalore", orderDate: "2026-06-18" },
+  { id: "#SS-2416", customer: "Sneha K.", item: "Bagru Mul Cotton Saree", total: 1799, status: "Delivered", paymentStatus: "Paid", deliveryCharges: 100, gatewayFee: 54, address: "7, Lake View, Hyderabad", orderDate: "2026-06-15" },
 ];
 
 let adminCustomers = [
@@ -78,27 +86,25 @@ let adminReviews = [
   { id: 2, name: "Lakshmi V.", product: "Ruby Temple Necklace Set", rating: 5, comment: "Beautiful shine and excellent quality.", status: "Approved", featured: true, date: "2026-06-19" },
 ];
 
-let adminBanners = [
-  { id: "ban-1", desktop: "https://placehold.co/1200x400", mobile: "https://placehold.co/600x400", startDate: "2026-06-01", endDate: "2026-06-30", link: "/sarees", active: true },
-  { id: "ban-2", desktop: "https://placehold.co/1200x400?text=Sale", mobile: "https://placehold.co/600x400?text=Sale", startDate: "2026-07-01", endDate: "2026-07-15", link: "/jewellery", active: true },
+let adminInstagramFeed: InstagramFeedItem[] = [
+  { id: "ig-1", mediaType: "post", url: "https://instagram.com/p/1", thumbnail: "", linkedProducts: [{ name: "Emerald Kanjivaram Silk Saree", url: "/product/emerald-kanjivaram-silk-saree" }], caption: "Festive collection!", isActive: true },
+  { id: "ig-2", mediaType: "reel", url: "https://instagram.com/reel/2", thumbnail: "", linkedProducts: [{ name: "Ruby Temple Necklace Set", url: "/product/ruby-temple-necklace-set" }], caption: "Temple jewellery vibes", isActive: true },
 ];
 
-let adminCoupons = [
-  { id: "cp-1", code: "SASHVI10", discountType: "percent", discountValue: 10, expiry: "2026-12-31", usageLimit: 100, minimumPurchase: 1999, active: true },
-  { id: "cp-2", code: "FLAT500", discountType: "fixed", discountValue: 500, expiry: "2026-11-30", usageLimit: 50, minimumPurchase: 4999, active: true },
+let adminCoupons: CouponItem[] = [
+  { id: "cp-1", code: "SASHVI10", category: "All", discountType: "percent", discountValue: 10, expiry: "2026-12-31", usageLimit: 100, minimumPurchase: 1999, active: true },
+  { id: "cp-2", code: "FLAT500", category: "Sarees", discountType: "fixed", discountValue: 500, expiry: "2026-11-30", usageLimit: 50, minimumPurchase: 4999, active: true },
 ];
 
 let adminSettings = {
   storeName: "Sashvi Studio",
-  logo: "https://placehold.co/120x40?text=Sashvi",
+  logo: "",
   contactNumber: "+91 98765 43210",
   email: "support@sashvistudio.com",
   address: "123 Heritage Lane, Bangalore",
-  freeDeliveryAbove: 1999,
+  freeDeliveryAbove: 1000,
   deliveryCharge: 100,
   gatewayFee: 3,
-  razorpayKey: "rzp_test_12345",
-  imageKitUrl: "https://example.imagekit.io/sashvi",
 };
 
 function jsonResponse(body: unknown, init?: ResponseInit) {
@@ -111,7 +117,7 @@ function jsonResponse(body: unknown, init?: ResponseInit) {
 function createJwt(payload: Record<string, unknown>) {
   const header = { alg: "HS256", typ: "JWT" };
   const encoded = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
-  const signature = createHmac("sha256", JWT_SECRET)
+  const signature = createHmac("sha256", JWT_SECRET!)
     .update(`${encoded(header)}.${encoded(payload)}`)
     .digest("base64url");
   return `${encoded(header)}.${encoded(payload)}.${signature}`;
@@ -120,7 +126,7 @@ function createJwt(payload: Record<string, unknown>) {
 function verifyJwt(token: string) {
   const [headerEncoded, payloadEncoded, signature] = token.split(".");
   if (!headerEncoded || !payloadEncoded || !signature) return null;
-  const expected = createHmac("sha256", JWT_SECRET)
+  const expected = createHmac("sha256", JWT_SECRET!)
     .update(`${headerEncoded}.${payloadEncoded}`)
     .digest("base64url");
   if (expected !== signature) return null;
@@ -138,13 +144,9 @@ function getBearerToken(request: Request) {
 
 async function requireAdmin(request: Request) {
   const token = getBearerToken(request);
-  if (!token) {
-    return jsonResponse({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!token) return jsonResponse({ error: "Unauthorized" }, { status: 401 });
   const payload = verifyJwt(token);
-  if (!payload || payload.role !== "admin") {
-    return jsonResponse({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!payload || payload.role !== "admin") return jsonResponse({ error: "Unauthorized" }, { status: 401 });
   return null;
 }
 
@@ -153,19 +155,13 @@ export async function handleApiRequest(request: Request): Promise<Response> {
   const pathname = url.pathname;
   const method = request.method.toUpperCase();
 
+  // ── Auth ──────────────────────────────────────────────────
   if (pathname === "/api/admin/login" && method === "POST") {
     const body = await request.json().catch(() => ({}));
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body.password === "string" ? body.password : "";
-
-    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      return jsonResponse({ error: "Admin credentials are not configured." }, { status: 500 });
-    }
-
-    if (email !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD) {
-      return jsonResponse({ error: "Invalid email or password." }, { status: 401 });
-    }
-
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) return jsonResponse({ error: "Admin credentials are not configured." }, { status: 500 });
+    if (email !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD) return jsonResponse({ error: "Invalid email or password." }, { status: 401 });
     const token = createJwt({ role: "admin", email: ADMIN_EMAIL, issuedAt: Date.now() });
     return jsonResponse({ token, user: { email: ADMIN_EMAIL } });
   }
@@ -176,6 +172,7 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     return jsonResponse({ user: { email: ADMIN_EMAIL } });
   }
 
+  // ── Products ──────────────────────────────────────────────
   if (pathname === "/api/admin/products" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
@@ -190,17 +187,30 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       id: `prod-${Date.now()}`,
       slug: typeof body.slug === "string" ? body.slug.trim() : `product-${Date.now()}`,
       name: typeof body.name === "string" ? body.name.trim() : "New product",
-      price: typeof body.price === "number" ? body.price : 0,
+      price: typeof body.salePrice === "number" ? body.salePrice : (typeof body.price === "number" ? body.price : 0),
+      salePrice: typeof body.salePrice === "number" ? body.salePrice : 0,
+      originalPrice: typeof body.originalPrice === "number" ? body.originalPrice : 0,
       image: typeof body.image === "string" ? body.image.trim() : "",
+      images: Array.isArray(body.images) ? body.images : [],
       categories: Array.isArray(body.categories) ? body.categories : [body.productType ?? "sarees"],
-      tags: Array.isArray(body.tags) ? body.tags.map((tag) => String(tag).trim()).filter(Boolean) : [],
+      tags: Array.isArray(body.tags) ? body.tags.map((t: unknown) => String(t).trim()).filter(Boolean) : [],
       stock: typeof body.stock === "number" ? body.stock : 0,
       description: typeof body.description === "string" ? body.description.trim() : "",
       sku: typeof body.sku === "string" ? body.sku.trim() : `SS-${Date.now()}`,
-      productType: (body.productType as Category) ?? (Array.isArray(body.categories) ? body.categories[0] : "sarees"),
+      productType: (body.productType as Category) ?? "sarees",
       active: body.active !== false,
+      fabricType: typeof body.fabricType === "string" ? body.fabricType : "",
+      material: typeof body.material === "string" ? body.material : "",
+      occasionWear: typeof body.occasionWear === "string" ? body.occasionWear : "",
+      workType: typeof body.workType === "string" ? body.workType : "",
+      sareeLength: typeof body.sareeLength === "number" ? body.sareeLength : undefined,
+      blousePiece: body.blousePiece === "Yes" || body.blousePiece === "No" ? body.blousePiece : undefined,
+      weight: typeof body.weight === "number" ? body.weight : undefined,
+      featured: body.featured === true,
+      buyOneGetOne: body.buyOneGetOne === true,
+      colorVariants: Array.isArray(body.colorVariants) ? body.colorVariants : [],
     };
-    adminProducts.unshift(newProduct);
+    adminProducts.unshift(newProduct as typeof adminProducts[0]);
     return jsonResponse({ product: newProduct });
   }
 
@@ -209,22 +219,18 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     if (unauthorized) return unauthorized;
     const id = pathname.replace("/api/admin/products/", "");
     const body = await request.json().catch(() => ({}));
-    const index = adminProducts.findIndex((product) => product.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Product not found." }, { status: 404 });
-    }
+    const index = adminProducts.findIndex((p) => p.id === id);
+    if (index === -1) return jsonResponse({ error: "Product not found." }, { status: 404 });
     const existing = adminProducts[index];
     const updated = {
       ...existing,
       ...body,
       id,
-      slug: typeof body.slug === "string" ? body.slug.trim() : existing.slug,
+      price: typeof body.salePrice === "number" ? body.salePrice : (typeof body.price === "number" ? body.price : existing.price),
       categories: Array.isArray(body.categories) ? body.categories : existing.categories,
-      tags: Array.isArray(body.tags) ? body.tags.map((tag) => String(tag).trim()).filter(Boolean) : existing.tags,
-      productType: (body.productType as Category) ?? existing.productType,
-      active: body.active !== false && body.active !== undefined ? body.active : existing.active,
-      price: typeof body.price === "number" ? body.price : existing.price,
-      stock: typeof body.stock === "number" ? body.stock : existing.stock,
+      tags: Array.isArray(body.tags) ? body.tags.map((t: unknown) => String(t).trim()).filter(Boolean) : existing.tags,
+      images: Array.isArray(body.images) ? body.images : existing.images,
+      colorVariants: Array.isArray(body.colorVariants) ? body.colorVariants : existing.colorVariants,
     };
     adminProducts[index] = updated;
     return jsonResponse({ product: updated });
@@ -234,14 +240,13 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const id = pathname.replace("/api/admin/products/", "");
-    const index = adminProducts.findIndex((product) => product.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Product not found." }, { status: 404 });
-    }
+    const index = adminProducts.findIndex((p) => p.id === id);
+    if (index === -1) return jsonResponse({ error: "Product not found." }, { status: 404 });
     adminProducts.splice(index, 1);
     return jsonResponse({});
   }
 
+  // ── Categories ────────────────────────────────────────────
   if (pathname === "/api/admin/categories" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
@@ -270,31 +275,23 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     if (unauthorized) return unauthorized;
     const id = pathname.replace("/api/admin/categories/", "");
     const body = await request.json().catch(() => ({}));
-    const index = adminCategories.findIndex((category) => category.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Category not found." }, { status: 404 });
-    }
-    const updated = {
-      ...adminCategories[index],
-      ...body,
-      name: typeof body.name === "string" ? body.name.trim() : adminCategories[index].name,
-    };
-    adminCategories[index] = updated;
-    return jsonResponse({ category: updated });
+    const index = adminCategories.findIndex((c) => c.id === id);
+    if (index === -1) return jsonResponse({ error: "Category not found." }, { status: 404 });
+    adminCategories[index] = { ...adminCategories[index], ...body, id };
+    return jsonResponse({ category: adminCategories[index] });
   }
 
   if (pathname.startsWith("/api/admin/categories/") && method === "DELETE") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const id = pathname.replace("/api/admin/categories/", "");
-    const index = adminCategories.findIndex((category) => category.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Category not found." }, { status: 404 });
-    }
+    const index = adminCategories.findIndex((c) => c.id === id);
+    if (index === -1) return jsonResponse({ error: "Category not found." }, { status: 404 });
     adminCategories.splice(index, 1);
     return jsonResponse({});
   }
 
+  // ── Orders ────────────────────────────────────────────────
   if (pathname === "/api/admin/orders" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
@@ -304,22 +301,22 @@ export async function handleApiRequest(request: Request): Promise<Response> {
   if (pathname.startsWith("/api/admin/orders/") && method === "PUT") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
-    const id = pathname.replace("/api/admin/orders/", "");
+    const id = decodeURIComponent(pathname.replace("/api/admin/orders/", ""));
     const body = await request.json().catch(() => ({}));
-    const index = adminOrders.findIndex((order) => order.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Order not found." }, { status: 404 });
-    }
+    const index = adminOrders.findIndex((o) => o.id === id);
+    if (index === -1) return jsonResponse({ error: "Order not found." }, { status: 404 });
     adminOrders[index] = { ...adminOrders[index], ...body };
     return jsonResponse({ order: adminOrders[index] });
   }
 
+  // ── Customers ─────────────────────────────────────────────
   if (pathname === "/api/admin/customers" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     return jsonResponse({ customers: adminCustomers });
   }
 
+  // ── Reviews ───────────────────────────────────────────────
   if (pathname === "/api/admin/reviews" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
@@ -331,10 +328,8 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     if (unauthorized) return unauthorized;
     const id = Number(pathname.replace("/api/admin/reviews/", ""));
     const body = await request.json().catch(() => ({}));
-    const index = adminReviews.findIndex((review) => review.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Review not found." }, { status: 404 });
-    }
+    const index = adminReviews.findIndex((r) => r.id === id);
+    if (index === -1) return jsonResponse({ error: "Review not found." }, { status: 404 });
     adminReviews[index] = { ...adminReviews[index], ...body };
     return jsonResponse({ review: adminReviews[index] });
   }
@@ -343,85 +338,47 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const id = Number(pathname.replace("/api/admin/reviews/", ""));
-    const index = adminReviews.findIndex((review) => review.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Review not found." }, { status: 404 });
-    }
+    const index = adminReviews.findIndex((r) => r.id === id);
+    if (index === -1) return jsonResponse({ error: "Review not found." }, { status: 404 });
     adminReviews.splice(index, 1);
     return jsonResponse({});
   }
 
+  // ── Instagram Feed ────────────────────────────────────────
   if (pathname === "/api/admin/instagram-feed" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
-    return jsonResponse({ feed: activeFeedItems });
+    return jsonResponse({ feed: adminInstagramFeed });
   }
 
   if (pathname === "/api/admin/instagram-feed" && method === "POST") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const body = await request.json().catch(() => ({}));
-    const item: Partial<InstagramFeedItem> = {
+    const item: InstagramFeedItem = {
       id: `ig-${Date.now()}`,
-      title: typeof body.title === "string" ? body.title.trim() : "Untitled",
-      url: typeof body.url === "string" ? body.url.trim() : "",
       mediaType: body.mediaType === "reel" ? "reel" : "post",
+      url: typeof body.url === "string" ? body.url.trim() : "",
       thumbnail: typeof body.thumbnail === "string" ? body.thumbnail.trim() : "",
-      productMap: typeof body.productMap === "object" && body.productMap ? body.productMap : {},
+      linkedProducts: Array.isArray(body.linkedProducts) ? body.linkedProducts : [],
       caption: typeof body.caption === "string" ? body.caption.trim() : "",
       isActive: body.isActive !== false,
     };
-    activeFeedItems.unshift(item as InstagramFeedItem);
-    return jsonResponse({ feed: activeFeedItems });
+    adminInstagramFeed.unshift(item);
+    return jsonResponse({ feed: adminInstagramFeed });
   }
 
   if (pathname.startsWith("/api/admin/instagram-feed/") && method === "DELETE") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const id = pathname.replace("/api/admin/instagram-feed/", "");
-    const index = activeFeedItems.findIndex((item) => item.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Item not found." }, { status: 404 });
-    }
-    activeFeedItems.splice(index, 1);
-    return jsonResponse({ feed: activeFeedItems });
+    const index = adminInstagramFeed.findIndex((item) => item.id === id);
+    if (index === -1) return jsonResponse({ error: "Item not found." }, { status: 404 });
+    adminInstagramFeed.splice(index, 1);
+    return jsonResponse({ feed: adminInstagramFeed });
   }
 
-  if (pathname === "/api/admin/banners" && method === "GET") {
-    const unauthorized = await requireAdmin(request);
-    if (unauthorized) return unauthorized;
-    return jsonResponse({ banners: adminBanners });
-  }
-
-  if (pathname === "/api/admin/banners" && method === "POST") {
-    const unauthorized = await requireAdmin(request);
-    if (unauthorized) return unauthorized;
-    const body = await request.json().catch(() => ({}));
-    const banner = {
-      id: `ban-${Date.now()}`,
-      desktop: typeof body.desktop === "string" ? body.desktop.trim() : "",
-      mobile: typeof body.mobile === "string" ? body.mobile.trim() : "",
-      startDate: typeof body.startDate === "string" ? body.startDate : new Date().toISOString().slice(0, 10),
-      endDate: typeof body.endDate === "string" ? body.endDate : new Date().toISOString().slice(0, 10),
-      link: typeof body.link === "string" ? body.link.trim() : "/",
-      active: body.active !== false,
-    };
-    adminBanners.push(banner);
-    return jsonResponse({ banner });
-  }
-
-  if (pathname.startsWith("/api/admin/banners/") && method === "DELETE") {
-    const unauthorized = await requireAdmin(request);
-    if (unauthorized) return unauthorized;
-    const id = pathname.replace("/api/admin/banners/", "");
-    const index = adminBanners.findIndex((banner) => banner.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Banner not found." }, { status: 404 });
-    }
-    adminBanners.splice(index, 1);
-    return jsonResponse({});
-  }
-
+  // ── Coupons ───────────────────────────────────────────────
   if (pathname === "/api/admin/coupons" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
@@ -432,13 +389,14 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const body = await request.json().catch(() => ({}));
-    const coupon = {
+    const coupon: CouponItem = {
       id: `cp-${Date.now()}`,
-      code: typeof body.code === "string" ? body.code.trim() : "NEWCODE",
+      code: typeof body.code === "string" ? body.code.trim().toUpperCase() : "NEWCODE",
+      category: typeof body.category === "string" ? body.category : "All",
       discountType: body.discountType === "fixed" ? "fixed" : "percent",
       discountValue: typeof body.discountValue === "number" ? body.discountValue : 0,
       expiry: typeof body.expiry === "string" ? body.expiry : new Date().toISOString().slice(0, 10),
-      usageLimit: typeof body.usageLimit === "number" ? body.usageLimit : 0,
+      usageLimit: typeof body.usageLimit === "number" ? body.usageLimit : 100,
       minimumPurchase: typeof body.minimumPurchase === "number" ? body.minimumPurchase : 0,
       active: body.active !== false,
     };
@@ -446,18 +404,33 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     return jsonResponse({ coupon });
   }
 
+  if (pathname.startsWith("/api/admin/coupons/") && method === "PUT") {
+    const unauthorized = await requireAdmin(request);
+    if (unauthorized) return unauthorized;
+    const id = pathname.replace("/api/admin/coupons/", "");
+    const body = await request.json().catch(() => ({}));
+    const index = adminCoupons.findIndex((c) => c.id === id);
+    if (index === -1) return jsonResponse({ error: "Coupon not found." }, { status: 404 });
+    adminCoupons[index] = {
+      ...adminCoupons[index],
+      ...body,
+      id,
+      code: typeof body.code === "string" ? body.code.trim().toUpperCase() : adminCoupons[index].code,
+    };
+    return jsonResponse({ coupon: adminCoupons[index] });
+  }
+
   if (pathname.startsWith("/api/admin/coupons/") && method === "DELETE") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const id = pathname.replace("/api/admin/coupons/", "");
-    const index = adminCoupons.findIndex((coupon) => coupon.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Coupon not found." }, { status: 404 });
-    }
+    const index = adminCoupons.findIndex((c) => c.id === id);
+    if (index === -1) return jsonResponse({ error: "Coupon not found." }, { status: 404 });
     adminCoupons.splice(index, 1);
     return jsonResponse({});
   }
 
+  // ── Settings ──────────────────────────────────────────────
   if (pathname === "/api/admin/settings" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
@@ -468,58 +441,43 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
     const body = await request.json().catch(() => ({}));
-    adminSettings = { ...adminSettings, ...body };
+    adminSettings = {
+      storeName: typeof body.storeName === "string" ? body.storeName : adminSettings.storeName,
+      logo: typeof body.logo === "string" ? body.logo : adminSettings.logo,
+      contactNumber: typeof body.contactNumber === "string" ? body.contactNumber : adminSettings.contactNumber,
+      email: typeof body.email === "string" ? body.email : adminSettings.email,
+      address: typeof body.address === "string" ? body.address : adminSettings.address,
+      freeDeliveryAbove: typeof body.freeDeliveryAbove === "number" ? body.freeDeliveryAbove : adminSettings.freeDeliveryAbove,
+      deliveryCharge: typeof body.deliveryCharge === "number" ? body.deliveryCharge : adminSettings.deliveryCharge,
+      gatewayFee: typeof body.gatewayFee === "number" ? body.gatewayFee : adminSettings.gatewayFee,
+    };
     return jsonResponse({ settings: adminSettings });
   }
 
+  // ── Image Upload ──────────────────────────────────────────
   if (pathname === "/api/admin/upload-image" && method === "POST") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
-    const formData = await request.formData();
-    const file = formData.get("file");
-    if (!file || typeof (file as any).arrayBuffer !== "function") {
-      return jsonResponse({ error: "No file uploaded." }, { status: 400 });
+    try {
+      const formData = await request.formData();
+      const file = formData.get("file");
+      if (!file || typeof (file as Blob).arrayBuffer !== "function") {
+        return jsonResponse({ error: "No file uploaded." }, { status: 400 });
+      }
+      const arrayBuffer = await (file as Blob).arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const fileName = (file as File).name ?? `image-${Date.now()}.jpg`;
+      const uploadResponse = await uploadImageToImageKit(buffer, `product-${Date.now()}-${fileName}`);
+      return jsonResponse({ url: uploadResponse.url });
+    } catch (err) {
+      console.error("Image upload error:", err);
+      return jsonResponse({ error: (err as Error).message ?? "Image upload failed." }, { status: 500 });
     }
-
-    const arrayBuffer = await (file as Blob).arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const uploadResponse = await uploadImageToImageKit(buffer, `product-${Date.now()}-${(file as any).name ?? "image"}`);
-
-    return jsonResponse({ url: uploadResponse.url });
   }
 
+  // ── Public instagram feed ─────────────────────────────────
   if (pathname === "/api/instagram-feed" && method === "GET") {
-    return jsonResponse({ feed: activeFeedItems });
-  }
-
-  if (pathname === "/api/instagram-feed" && method === "POST") {
-    const unauthorized = await requireAdmin(request);
-    if (unauthorized) return unauthorized;
-    const body = await request.json().catch(() => ({}));
-    const item: Partial<InstagramFeedItem> = {
-      id: `ig-${Date.now()}`,
-      title: typeof body.title === "string" ? body.title.trim() : "Untitled",
-      url: typeof body.url === "string" ? body.url.trim() : "",
-      mediaType: body.mediaType === "reel" ? "reel" : "post",
-      thumbnail: typeof body.thumbnail === "string" ? body.thumbnail.trim() : "",
-      productMap: typeof body.productMap === "object" && body.productMap ? body.productMap : {},
-      caption: typeof body.caption === "string" ? body.caption.trim() : "",
-      isActive: body.isActive !== false,
-    };
-    activeFeedItems.unshift(item as InstagramFeedItem);
-    return jsonResponse({ feed: activeFeedItems });
-  }
-
-  if (pathname.startsWith("/api/instagram-feed/") && method === "DELETE") {
-    const unauthorized = await requireAdmin(request);
-    if (unauthorized) return unauthorized;
-    const id = pathname.replace("/api/instagram-feed/", "");
-    const index = activeFeedItems.findIndex((item) => item.id === id);
-    if (index === -1) {
-      return jsonResponse({ error: "Item not found." }, { status: 404 });
-    }
-    activeFeedItems.splice(index, 1);
-    return jsonResponse({ feed: activeFeedItems });
+    return jsonResponse({ feed: adminInstagramFeed.filter(i => i.isActive) });
   }
 
   return jsonResponse({ error: "Endpoint not found." }, { status: 404 });
