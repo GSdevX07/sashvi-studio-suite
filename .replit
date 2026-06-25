@@ -37,13 +37,9 @@ externalPort = 80
 [userenv]
 
 [userenv.shared]
-JWT_SECRET = "your_sashvi_studio_jwt_secret_key_2026"
 ADMIN_EMAIL = "admin@sashvistudio.com"
-ADMIN_PASSWORD = "admin123"
 VITE_SUPABASE_URL = "https://zzudwxxkwscgiakjiexz.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_hPg-HgVk68QLgYzJiVS6qw_QgKbJQ6q"
 IMAGEKIT_PUBLIC_KEY = "public_7AAtMlwbYycz58Vm+ffxsNkbRy4="
-IMAGEKIT_PRIVATE_KEY = "private_iPvj6wva83VBQ2xOsWYcRGR+iZI="
 IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/qncajau4w"
 EMAIL_FROM = "Sashvi Studio <orders@sashvistudio.in>"
 
