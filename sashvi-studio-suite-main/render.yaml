@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: sashvi-backend
+    env: node
+    plan: free
+    buildCommand: "cd backend && npm ci && npm run build"
+    startCommand: "cd backend && npm start"
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: JWT_SECRET
+        sync: false
