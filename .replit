@@ -1,0 +1,47 @@
+modules = ["nodejs-20", "web"]
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd sashvi-studio-suite-main && npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+JWT_SECRET = "bc9f1121c0736d9bb7504e66b287996528fcf6c554ab762dca71b2cc578c3032"
+ADMIN_EMAIL = "admin@sashvistudio.com"
+ADMIN_PASSWORD = "admin123"
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "cd sashvi-studio-suite-main && node .output/server/index.mjs"]
+build = ["bash", "-c", "cd sashvi-studio-suite-main && npm run build"]
