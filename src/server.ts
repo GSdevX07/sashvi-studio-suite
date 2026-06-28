@@ -1,6 +1,7 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
+import { handleApiRequest } from "./lib/api.server";
 import { renderErrorPage } from "./lib/error-page";
 
 type ServerEntry = {
@@ -40,6 +41,22 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname.startsWith("/backend-api/")) {
+        const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
+        const targetPath = url.pathname.replace(/^\/backend-api/, "") + url.search;
+        const target = new URL(targetPath, backendUrl);
+        const headers = new Headers(request.headers);
+        return fetch(target.toString(), {
+          method: request.method,
+          headers,
+          body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
+        });
+      }
+      if (url.pathname.startsWith("/api/")) {
+        return await handleApiRequest(request);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
