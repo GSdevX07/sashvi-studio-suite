@@ -3,6 +3,7 @@ Sashvi Backend (Express + Supabase)
 Quick scaffold for the backend API used by the Sashvi Studio frontend.
 
 Features included:
+
 - Express server (TypeScript)
 - Supabase client wrapper
 - Email sending via SMTP (nodemailer)

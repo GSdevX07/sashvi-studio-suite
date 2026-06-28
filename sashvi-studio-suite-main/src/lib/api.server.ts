@@ -10,45 +10,111 @@ if (!JWT_SECRET) {
 
 // ── Types ────────────────────────────────────────────────
 
-type ColorVariant = { id: string; color: string; stock: number; originalPrice: number; salePrice: number };
+type ColorVariant = {
+  id: string;
+  color: string;
+  stock: number;
+  originalPrice: number;
+  salePrice: number;
+};
 type InstagramLinkedProduct = { name: string; url: string };
 
 type CouponItem = {
-  id: string; code: string; category: string;
-  discountType: "fixed" | "percent"; discountValue: number;
-  expiry: string; usageLimit: number; minimumPurchase: number; active: boolean;
+  id: string;
+  code: string;
+  category: string;
+  discountType: "fixed" | "percent";
+  discountValue: number;
+  expiry: string;
+  usageLimit: number;
+  minimumPurchase: number;
+  active: boolean;
 };
 
 // ── In-memory fallback stores (tables not in Supabase) ────
 
 let adminCoupons: CouponItem[] = [
-  { id: "cp-1", code: "SASHVI10", category: "All", discountType: "percent", discountValue: 10, expiry: "2026-12-31", usageLimit: 100, minimumPurchase: 1999, active: true },
-  { id: "cp-2", code: "FLAT500", category: "Sarees", discountType: "fixed", discountValue: 500, expiry: "2026-11-30", usageLimit: 50, minimumPurchase: 4999, active: true },
+  {
+    id: "cp-1",
+    code: "SASHVI10",
+    category: "All",
+    discountType: "percent",
+    discountValue: 10,
+    expiry: "2026-12-31",
+    usageLimit: 100,
+    minimumPurchase: 1999,
+    active: true,
+  },
+  {
+    id: "cp-2",
+    code: "FLAT500",
+    category: "Sarees",
+    discountType: "fixed",
+    discountValue: 500,
+    expiry: "2026-11-30",
+    usageLimit: 50,
+    minimumPurchase: 4999,
+    active: true,
+  },
 ];
 
 let adminCustomers = [
-  { id: "cust-1", name: "Ananya R.", email: "ananya@example.com", totalSpend: 28499, lastOrder: "2026-06-20", orders: 14, address: "Chennai" },
-  { id: "cust-2", name: "Lakshmi V.", email: "lakshmi@example.com", totalSpend: 15849, lastOrder: "2026-06-18", orders: 9, address: "Bangalore" },
-  { id: "cust-3", name: "Sneha K.", email: "sneha@example.com", totalSpend: 11299, lastOrder: "2026-06-15", orders: 7, address: "Hyderabad" },
+  {
+    id: "cust-1",
+    name: "Ananya R.",
+    email: "ananya@example.com",
+    totalSpend: 28499,
+    lastOrder: "2026-06-20",
+    orders: 14,
+    address: "Chennai",
+  },
+  {
+    id: "cust-2",
+    name: "Lakshmi V.",
+    email: "lakshmi@example.com",
+    totalSpend: 15849,
+    lastOrder: "2026-06-18",
+    orders: 9,
+    address: "Bangalore",
+  },
+  {
+    id: "cust-3",
+    name: "Sneha K.",
+    email: "sneha@example.com",
+    totalSpend: 11299,
+    lastOrder: "2026-06-15",
+    orders: 7,
+    address: "Hyderabad",
+  },
 ];
 
 const DEFAULT_SETTINGS = {
-  storeName: "Sashvi Studio", logo: "", contactNumber: "+91 98765 43210",
-  email: "support@sashvistudio.com", address: "123 Heritage Lane, Bangalore",
-  freeDeliveryAbove: 1000, deliveryCharge: 100, gatewayFee: 3,
+  storeName: "Sashvi Studio",
+  logo: "",
+  contactNumber: "+91 98765 43210",
+  email: "support@sashvistudio.com",
+  address: "123 Heritage Lane, Bangalore",
+  freeDeliveryAbove: 1000,
+  deliveryCharge: 100,
+  gatewayFee: 3,
 };
 let adminSettings = { ...DEFAULT_SETTINGS };
 
 // ── Auth helpers ──────────────────────────────────────────
 
 function jsonResponse(body: unknown, init?: ResponseInit) {
-  return new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" }, ...init });
+  return new Response(JSON.stringify(body), {
+    headers: { "Content-Type": "application/json" },
+    ...init,
+  });
 }
 
 function createJwt(payload: Record<string, unknown>) {
   const header = { alg: "HS256", typ: "JWT" };
   const enc = (v: object) => Buffer.from(JSON.stringify(v)).toString("base64url");
-  const sig = createHmac("sha256", JWT_SECRET!).update(`${enc(header)}.${enc(payload)}`).digest("base64url");
+  const sig = createHmac("sha256", JWT_SECRET!)
+    .update(`${enc(header)}.${enc(payload)}`)
+    .digest("base64url");
   return `${enc(header)}.${enc(payload)}.${sig}`;
 }
 
@@ -57,7 +123,13 @@ function verifyJwt(token: string) {
   if (!h || !p || !s) return null;
   const expected = createHmac("sha256", JWT_SECRET!).update(`${h}.${p}`).digest("base64url");
   if (expected !== s) return null;
-  try { return JSON.parse(Buffer.from(p, "base64url").toString("utf-8")); } catch { return null; }
+  try {
+    const payload = JSON.parse(Buffer.from(p, "base64url").toString("utf-8"));
+    if (payload.exp && payload.exp * 1000 < Date.now()) return null;
+    return payload;
+  } catch {
+    return null;
+  }
 }
 
 async function requireAdmin(request: Request) {
@@ -65,7 +137,8 @@ async function requireAdmin(request: Request) {
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
   if (!token) return jsonResponse({ error: "Unauthorized" }, { status: 401 });
   const payload = verifyJwt(token);
-  if (!payload || payload.role !== "admin") return jsonResponse({ error: "Unauthorized" }, { status: 401 });
+  if (!payload || payload.role !== "admin")
+    return jsonResponse({ error: "Unauthorized" }, { status: 401 });
   return null;
 }
 
@@ -77,7 +150,7 @@ function dbErr(label: string, error: { message: string; code?: string }) {
 // ── Row mappers (Supabase snake_case → camelCase) ─────────
 
 function mapProduct(p: Record<string, unknown>) {
-  const cat = p.categories as Record<string, unknown> | null ?? null;
+  const cat = (p.categories as Record<string, unknown> | null) ?? null;
   const productType = String(cat?.type ?? "sarees") as Category;
   const imageUrls = Array.isArray(p.image_urls) ? (p.image_urls as string[]) : [];
   return {
@@ -93,7 +166,9 @@ function mapProduct(p: Record<string, unknown>) {
     tags: cat?.name ? [String(cat.name)] : [],
     stock: Number(p.stock ?? 0),
     description: String(p.description ?? ""),
-    sku: `SS-${String(p.id ?? "").slice(0, 8).toUpperCase()}`,
+    sku: `SS-${String(p.id ?? "")
+      .slice(0, 8)
+      .toUpperCase()}`,
     productType,
     active: Boolean(p.is_active ?? true),
     fabricType: String(p.fabric ?? ""),
@@ -101,7 +176,8 @@ function mapProduct(p: Record<string, unknown>) {
     occasionWear: String(p.occasion ?? ""),
     workType: String(p.work_type ?? ""),
     sareeLength: p.length != null ? Number(p.length) : undefined,
-    blousePiece: p.blouse_included === true ? "Yes" : p.blouse_included === false ? "No" : undefined,
+    blousePiece:
+      p.blouse_included === true ? "Yes" : p.blouse_included === false ? "No" : undefined,
     weight: p.weight != null ? Number(p.weight) : undefined,
     featured: Boolean(p.featured ?? false),
     buyOneGetOne: Boolean(p.is_bogo ?? false),
@@ -157,7 +233,9 @@ function mapInstagramItem(item: Record<string, unknown>) {
     mediaType: String(item.type ?? item.media_type ?? "post") as "post" | "reel",
     url: String(item.instagram_url ?? item.url ?? ""),
     thumbnail: String(item.thumbnail_image ?? item.thumbnail ?? ""),
-    linkedProducts: Array.isArray(item.linked_products) ? (item.linked_products as InstagramLinkedProduct[]) : [],
+    linkedProducts: Array.isArray(item.linked_products)
+      ? (item.linked_products as InstagramLinkedProduct[])
+      : [],
     caption: String(item.caption ?? ""),
     isActive: item.is_active !== false,
   };
@@ -188,7 +266,8 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const body = await request.json().catch(() => ({}));
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body.password === "string" ? body.password : "";
-    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) return jsonResponse({ error: "Admin credentials not configured." }, { status: 500 });
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD)
+      return jsonResponse({ error: "Admin credentials not configured." }, { status: 500 });
     if (email !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD)
       return jsonResponse({ error: "Invalid email or password." }, { status: 401 });
     const token = createJwt({ role: "admin", email: ADMIN_EMAIL, issuedAt: Date.now() });
@@ -207,22 +286,37 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     if (unauthorized) return unauthorized;
     const { data, error } = await supabase
       .from("products")
-      .select("*, categories(id, name, type)")
+      .select("*")
       .order("created_at", { ascending: false });
     if (error) {
       console.warn("[products GET]", error.message);
       // Fallback: return static products
       const fallback = PRODUCTS.map((p) => ({
-        id: p.id, slug: p.slug, name: p.name,
-        price: p.price, salePrice: p.price, originalPrice: p.compareAt ?? p.price,
-        image: p.image, images: p.images ?? [], categories: p.categories, tags: p.tags ?? [],
-        stock: p.stock ?? 0, description: p.description ?? "", sku: `SS-${p.id}`,
-        productType: (p.categories[0] ?? "sarees") as Category, active: true,
-        fabricType: "", material: "", occasionWear: "", workType: "",
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        price: p.price,
+        salePrice: p.price,
+        originalPrice: p.compareAt ?? p.price,
+        image: p.image,
+        images: p.images ?? [],
+        categories: p.categories,
+        tags: p.tags ?? [],
+        stock: p.stock ?? 0,
+        description: p.description ?? "",
+        sku: `SS-${p.id}`,
+        productType: (p.categories[0] ?? "sarees") as Category,
+        active: true,
+        fabricType: "",
+        material: "",
+        occasionWear: "",
+        workType: "",
         sareeLength: p.categories.includes("sarees") ? 5.5 : undefined,
-        blousePiece: p.categories.includes("sarees") ? "Yes" as const : undefined,
+        blousePiece: p.categories.includes("sarees") ? ("Yes" as const) : undefined,
         weight: undefined as number | undefined,
-        featured: p.isFeatured ?? false, buyOneGetOne: false, colorVariants: [] as ColorVariant[],
+        featured: p.isFeatured ?? false,
+        buyOneGetOne: false,
+        colorVariants: [] as ColorVariant[],
       }));
       return jsonResponse({ products: fallback });
     }
@@ -240,7 +334,7 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       name: typeof body.name === "string" ? body.name.trim() : "New product",
       sale_price: typeof body.salePrice === "number" ? body.salePrice : 0,
       original_price: typeof body.originalPrice === "number" ? body.originalPrice : 0,
-      image_urls: Array.isArray(body.images) ? body.images : (body.image ? [body.image] : []),
+      image_urls: Array.isArray(body.images) ? body.images : body.image ? [body.image] : [],
       stock: typeof body.stock === "number" ? body.stock : 0,
       description: typeof body.description === "string" ? body.description.trim() : "",
       category_id: categoryId,
@@ -253,9 +347,18 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       weight: typeof body.weight === "number" ? body.weight : null,
       featured: body.featured === true,
       is_bogo: body.buyOneGetOne === true,
-      color: Array.isArray(body.colorVariants) && body.colorVariants[0] ? String(body.colorVariants[0].color) : typeof body.color === "string" ? body.color : "",
+      color:
+        Array.isArray(body.colorVariants) && body.colorVariants[0]
+          ? String(body.colorVariants[0].color)
+          : typeof body.color === "string"
+            ? body.color
+            : "",
     };
-    const { data, error } = await supabase.from("products").insert(row).select("*, categories(id, name, type)").single();
+    const { data, error } = await supabase
+      .from("products")
+      .insert(row)
+      .select("*")
+      .single();
     if (error) return dbErr("products POST", error);
     return jsonResponse({ product: mapProduct(data as Record<string, unknown>) });
   }
@@ -290,7 +393,12 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       const categoryId = await resolveCategoryId(body.productType ?? "sarees", firstTag);
       if (categoryId) updates.category_id = categoryId;
     }
-    const { data, error } = await supabase.from("products").update(updates).eq("id", id).select("*, categories(id, name, type)").single();
+    const { data, error } = await supabase
+      .from("products")
+      .update(updates)
+      .eq("id", id)
+      .select("*")
+      .single();
     if (error) return dbErr("products PUT", error);
     return jsonResponse({ product: mapProduct(data as Record<string, unknown>) });
   }
@@ -310,7 +418,12 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     if (unauthorized) return unauthorized;
     const id = pathname.replace("/api/admin/inventory/", "");
     const body = await request.json().catch(() => ({}));
-    const { data, error } = await supabase.from("products").update({ stock: Number(body.stock ?? 0) }).eq("id", id).select("*, categories(id, name, type)").single();
+    const { data, error } = await supabase
+      .from("products")
+      .update({ stock: Number(body.stock ?? 0) })
+      .eq("id", id)
+      .select("*")
+      .single();
     if (error) return dbErr("inventory PATCH", error);
     return jsonResponse({ product: mapProduct(data as Record<string, unknown>) });
   }
@@ -319,8 +432,14 @@ export async function handleApiRequest(request: Request): Promise<Response> {
   if (pathname === "/api/admin/categories" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
-    const { data, error } = await supabase.from("categories").select("*").order("display_order", { ascending: true });
-    if (error) { console.warn("[categories GET]", error.message); return jsonResponse({ categories: [] }); }
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .order("display_order", { ascending: true });
+    if (error) {
+      console.warn("[categories GET]", error.message);
+      return jsonResponse({ categories: [] });
+    }
     return jsonResponse({ categories: (data as Record<string, unknown>[]).map(mapCategory) });
   }
 
@@ -351,7 +470,12 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     if (body.parent != null) updates.type = String(body.parent).toLowerCase();
     if (body.sortOrder != null) updates.display_order = body.sortOrder;
     if (body.active != null) updates.is_active = body.active;
-    const { data, error } = await supabase.from("categories").update(updates).eq("id", id).select().single();
+    const { data, error } = await supabase
+      .from("categories")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
     if (error) return dbErr("categories PUT", error);
     return jsonResponse({ category: mapCategory(data as Record<string, unknown>) });
   }
@@ -369,8 +493,14 @@ export async function handleApiRequest(request: Request): Promise<Response> {
   if (pathname === "/api/admin/orders" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
-    const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-    if (error) { console.warn("[orders GET]", error.message); return jsonResponse({ orders: [] }); }
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.warn("[orders GET]", error.message);
+      return jsonResponse({ orders: [] });
+    }
     return jsonResponse({ orders: (data as Record<string, unknown>[]).map(mapOrder) });
   }
 
@@ -382,7 +512,12 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const updates: Record<string, unknown> = {};
     if (body.status != null) updates.status = body.status;
     if (body.paymentStatus != null) updates.payment_status = body.paymentStatus;
-    const { data, error } = await supabase.from("orders").update(updates).eq("order_id", id).select().single();
+    const { data, error } = await supabase
+      .from("orders")
+      .update(updates)
+      .eq("order_id", id)
+      .select()
+      .single();
     if (error) return dbErr("orders PUT", error);
     return jsonResponse({ order: mapOrder(data as Record<string, unknown>) });
   }
@@ -402,7 +537,10 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       .from("reviews")
       .select("id, user_name, product_id, rating, review, verified, featured, created_at")
       .order("created_at", { ascending: false });
-    if (error) { console.warn("[reviews GET]", error.message); return jsonResponse({ reviews: [] }); }
+    if (error) {
+      console.warn("[reviews GET]", error.message);
+      return jsonResponse({ reviews: [] });
+    }
     return jsonResponse({ reviews: (data as Record<string, unknown>[]).map(mapReview) });
   }
 
@@ -417,10 +555,19 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     if (body.featured != null) updates.featured = body.featured;
     if (Object.keys(updates).length === 0) {
       // No updatable fields — return current state
-      const { data } = await supabase.from("reviews").select("id, user_name, product_id, rating, review, verified, featured, created_at").eq("id", id).single();
+      const { data } = await supabase
+        .from("reviews")
+        .select("id, user_name, product_id, rating, review, verified, featured, created_at")
+        .eq("id", id)
+        .single();
       return jsonResponse({ review: data ? mapReview(data as Record<string, unknown>) : { id } });
     }
-    const { data, error } = await supabase.from("reviews").update(updates).eq("id", id).select("id, user_name, product_id, rating, review, verified, featured, created_at").single();
+    const { data, error } = await supabase
+      .from("reviews")
+      .update(updates)
+      .eq("id", id)
+      .select("id, user_name, product_id, rating, review, verified, featured, created_at")
+      .single();
     if (error) {
       // Column may not exist — return success anyway so UI updates
       console.warn("[reviews PATCH]", error.message);
@@ -442,8 +589,14 @@ export async function handleApiRequest(request: Request): Promise<Response> {
   if (pathname === "/api/admin/instagram-feed" && method === "GET") {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
-    const { data, error } = await supabase.from("instagram_feed").select("*").order("created_at", { ascending: false });
-    if (error) { console.warn("[instagram_feed GET]", error.message); return jsonResponse({ feed: [] }); }
+    const { data, error } = await supabase
+      .from("instagram_feed")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.warn("[instagram_feed GET]", error.message);
+      return jsonResponse({ feed: [] });
+    }
     return jsonResponse({ feed: (data as Record<string, unknown>[]).map(mapInstagramItem) });
   }
 
@@ -506,8 +659,11 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const index = adminCoupons.findIndex((c) => c.id === id);
     if (index === -1) return jsonResponse({ error: "Coupon not found." }, { status: 404 });
     adminCoupons[index] = {
-      ...adminCoupons[index], ...body, id,
-      code: typeof body.code === "string" ? body.code.trim().toUpperCase() : adminCoupons[index].code,
+      ...adminCoupons[index],
+      ...body,
+      id,
+      code:
+        typeof body.code === "string" ? body.code.trim().toUpperCase() : adminCoupons[index].code,
     };
     return jsonResponse({ coupon: adminCoupons[index] });
   }
@@ -536,11 +692,18 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     adminSettings = {
       storeName: typeof body.storeName === "string" ? body.storeName : adminSettings.storeName,
       logo: typeof body.logo === "string" ? body.logo : adminSettings.logo,
-      contactNumber: typeof body.contactNumber === "string" ? body.contactNumber : adminSettings.contactNumber,
+      contactNumber:
+        typeof body.contactNumber === "string" ? body.contactNumber : adminSettings.contactNumber,
       email: typeof body.email === "string" ? body.email : adminSettings.email,
       address: typeof body.address === "string" ? body.address : adminSettings.address,
-      freeDeliveryAbove: typeof body.freeDeliveryAbove === "number" ? body.freeDeliveryAbove : adminSettings.freeDeliveryAbove,
-      deliveryCharge: typeof body.deliveryCharge === "number" ? body.deliveryCharge : adminSettings.deliveryCharge,
+      freeDeliveryAbove:
+        typeof body.freeDeliveryAbove === "number"
+          ? body.freeDeliveryAbove
+          : adminSettings.freeDeliveryAbove,
+      deliveryCharge:
+        typeof body.deliveryCharge === "number"
+          ? body.deliveryCharge
+          : adminSettings.deliveryCharge,
       gatewayFee: typeof body.gatewayFee === "number" ? body.gatewayFee : adminSettings.gatewayFee,
     };
     return jsonResponse({ settings: adminSettings });
@@ -558,8 +721,15 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       const arrayBuffer = await (file as Blob).arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const fileName = (file as File).name ?? `image-${Date.now()}.jpg`;
-      const uploadResponse = await uploadImageToImageKit(buffer, `product-${Date.now()}-${fileName}`);
-      return jsonResponse({ url: uploadResponse.url, fileId: uploadResponse.fileId, name: uploadResponse.name });
+      const uploadResponse = await uploadImageToImageKit(
+        buffer,
+        `product-${Date.now()}-${fileName}`,
+      );
+      return jsonResponse({
+        url: uploadResponse.url,
+        fileId: uploadResponse.fileId,
+        name: uploadResponse.name,
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upload failed.";
       console.error("[upload-image]", message);

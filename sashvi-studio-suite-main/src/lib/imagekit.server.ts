@@ -2,7 +2,9 @@ import { config as dotenvConfig } from "dotenv";
 
 dotenvConfig();
 
-let imagekitInstance: import("imagekit").default | null = null;
+import ImageKit from "imagekit";
+
+let imagekitInstance: ImageKit | null = null;
 
 async function getImageKit() {
   const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
@@ -14,7 +16,6 @@ async function getImageKit() {
   }
 
   if (!imagekitInstance) {
-    const ImageKit = (await import("imagekit")).default;
     imagekitInstance = new ImageKit({ publicKey, privateKey, urlEndpoint });
   }
 

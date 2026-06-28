@@ -9,15 +9,12 @@ export function Logo({ compact = false }: { compact?: boolean }) {
         alt={`${BRAND.name} logo`}
         width={48}
         height={48}
-        className="h-11 w-11 rounded-full ring-1 ring-border shadow-soft bg-card"
+        className="h-9 w-9 sm:h-11 sm:w-11 rounded-full ring-1 ring-border shadow-soft bg-card"
       />
       {!compact && (
         <div className="leading-tight">
-          <div className="font-display text-[1.05rem] sm:text-lg tracking-[0.22em] text-foreground uppercase">
+          <div className="font-display text-[0.9rem] sm:text-[1.05rem] sm:text-lg tracking-[0.22em] text-foreground uppercase">
             {BRAND.name}
-          </div>
-          <div className="eyebrow text-[0.55rem] sm:text-[0.6rem] mt-0.5">
-            {BRAND.tagline}
           </div>
         </div>
       )}

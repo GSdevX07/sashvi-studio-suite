@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
-import { PRODUCTS } from "@/lib/products";
+import { useCatalogProductIds } from "@/lib/catalog";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useAuth } from "@/lib/auth-context";
 
@@ -15,6 +15,7 @@ function WishlistPage() {
   const { isLoggedIn } = useAuth();
   const { ids } = useWishlist();
   const navigate = useNavigate();
+  const { products: items } = useCatalogProductIds(ids);
 
   if (!isLoggedIn) {
     return (
@@ -30,11 +31,14 @@ function WishlistPage() {
           <div className="flex gap-3">
             <button
               onClick={() => navigate({ to: "/my-account" })}
-              className="rounded-full bg-foreground px-6 py-3 text-sm font-medium uppercase tracking-widest text-background hover:bg-accent hover:text-accent-foreground transition"
+              className="rounded-full bg-foreground px-6 py-3 text-sm font-medium uppercase tracking-widest text-background transition hover:bg-accent hover:text-accent-foreground"
             >
               Sign In
             </button>
-            <Link to="/sarees" className="rounded-full border border-border px-6 py-3 text-sm font-medium uppercase tracking-widest text-foreground hover:border-accent hover:text-accent transition">
+            <Link
+              to="/sarees"
+              className="rounded-full border border-border px-6 py-3 text-sm font-medium uppercase tracking-widest text-foreground transition hover:border-accent hover:text-accent"
+            >
               Continue Shopping
             </Link>
           </div>
@@ -42,8 +46,6 @@ function WishlistPage() {
       </Layout>
     );
   }
-
-  const items = PRODUCTS.filter((p) => ids.includes(p.id));
 
   if (items.length === 0) {
     return (
@@ -58,7 +60,7 @@ function WishlistPage() {
           </div>
           <Link
             to="/sarees"
-            className="rounded-full bg-foreground px-6 py-3 text-sm font-medium uppercase tracking-widest text-background hover:bg-accent hover:text-accent-foreground transition"
+            className="rounded-full bg-foreground px-6 py-3 text-sm font-medium uppercase tracking-widest text-background transition hover:bg-accent hover:text-accent-foreground"
           >
             Browse Products
           </Link>
@@ -76,7 +78,7 @@ function WishlistPage() {
       <section className="container-luxe pb-20">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
           {items.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} showRemove stock={p.stock} />
           ))}
         </div>
       </section>

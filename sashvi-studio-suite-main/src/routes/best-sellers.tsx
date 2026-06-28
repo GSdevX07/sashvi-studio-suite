@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
-import { PRODUCTS, formatINR } from "@/lib/products";
+import { ProductCard } from "@/components/ProductCard";
+import { useCatalogProducts } from "@/lib/catalog";
 
 export const Route = createFileRoute("/best-sellers")({
   head: () => ({ meta: [{ title: "Best Sellers — Sashvi Studio" }] }),
@@ -8,7 +9,8 @@ export const Route = createFileRoute("/best-sellers")({
 });
 
 function BestSellersPage() {
-  const bestSellers = PRODUCTS.filter((product) => product.isBestSelling).slice(0, 12);
+  const { products } = useCatalogProducts();
+  const bestSellers = products.filter((product) => product.isBestSeller);
 
   return (
     <Layout>
@@ -21,19 +23,18 @@ function BestSellersPage() {
       </section>
 
       <section className="container-luxe grid gap-6 pb-24 md:grid-cols-2 lg:grid-cols-3">
-        {bestSellers.map((product) => (
-          <article key={product.id} className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
-            <img src={product.image} alt={product.name} className="h-72 w-full rounded-3xl object-cover" />
-            <div className="mt-5">
-              <h2 className="text-lg font-semibold text-foreground">{product.name}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">{product.tags[0]}</p>
-              <div className="mt-4 text-base font-medium text-foreground">{formatINR(product.price)}</div>
-              <Link to={`/product/${product.slug}`} className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline">
-                View product
-              </Link>
-            </div>
-          </article>
-        ))}
+        {bestSellers.length === 0 ? (
+          <div className="col-span-full py-20 text-center">
+            <p className="text-lg text-muted-foreground">No best sellers available yet.</p>
+            <Link to="/" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline">
+              Browse all products
+            </Link>
+          </div>
+        ) : (
+          bestSellers.map((product) => (
+            <ProductCard key={product.id} product={product} stock={product.stock} />
+          ))
+        )}
       </section>
     </Layout>
   );

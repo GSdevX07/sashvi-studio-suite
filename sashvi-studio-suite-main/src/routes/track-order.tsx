@@ -13,7 +13,8 @@ function TrackOrderPage() {
         <div className="eyebrow mb-3">Track Your Order</div>
         <h1 className="font-display text-4xl md:text-5xl">Track Order Status</h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          Enter your order details or use the link shared via Email/WhatsApp once your order is dispatched.
+          Enter your order details or use the link shared via Email/WhatsApp once your order is
+          dispatched.
         </p>
       </section>
     </Layout>

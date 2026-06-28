@@ -11,8 +11,7 @@ export function Footer() {
           <div className="max-w-md">
             <Logo />
             <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-              Thoughtfully curated sarees, South Indian imitation jewellery, and ready-to-style
-              combinations — crafted to complete every look.
+              Thoughtfully curated sarees, handloom and artisanal treasures, and timeless jewellery — styled to complete you.
             </p>
             <div className="mt-6 flex items-center gap-3">
               <a
@@ -44,33 +43,81 @@ export function Footer() {
 
           <div className="grid gap-8 md:grid-cols-3">
             <div>
-              <h4 className="text-sm font-semibold uppercase tracking-widest text-foreground/80">Quick Links</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-widest text-foreground/80">
+                Quick Links
+              </h4>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/shop" className="hover:text-foreground">Shop All</Link></li>
-                <li><Link to="/track-order" className="hover:text-foreground">Track Order</Link></li>
-                <li><Link to="/my-account" className="hover:text-foreground">My Account</Link></li>
-                <li><Link to="/contact" className="hover:text-foreground">Customer Support</Link></li>
+                <li>
+                  <Link to="/shop" className="hover:text-foreground">
+                    Shop All
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/my-account" className="hover:text-foreground">
+                    My Account
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-foreground">
+                    Customer Support
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-sm font-semibold uppercase tracking-widest text-foreground/80">Legal</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-widest text-foreground/80">
+                Legal
+              </h4>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/terms-and-conditions" className="hover:text-foreground">Terms &amp; Conditions</Link></li>
-                <li><Link to="/shipping-policy" className="hover:text-foreground">Shipping Policy</Link></li>
-                <li><Link to="/privacy-policy" className="hover:text-foreground">Privacy Policy</Link></li>
-                <li><Link to="/exchange-policy" className="hover:text-foreground">Exchange Policy</Link></li>
+                <li>
+                  <Link to="/terms-and-conditions" className="hover:text-foreground">
+                    Terms &amp; Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/shipping-policy" className="hover:text-foreground">
+                    Shipping Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy-policy" className="hover:text-foreground">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/exchange-policy" className="hover:text-foreground">
+                    Exchange Policy
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-sm font-semibold uppercase tracking-widest text-foreground/80">Categories</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-widest text-foreground/80">
+                Categories
+              </h4>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/sarees" className="hover:text-foreground">Sarees</Link></li>
-                <li><Link to="/jewellery" className="hover:text-foreground">Jewellery</Link></li>
-                <li><Link to="/combos" className="hover:text-foreground">Combos</Link></li>
-                <li><Link to="/best-sellers" className="hover:text-foreground">Best Sellers</Link></li>
-                <li><Link to="/new-arrivals" className="hover:text-foreground">New Arrivals</Link></li>
+                <li>
+                  <Link to="/sarees" className="hover:text-foreground">
+                    Sarees
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/jewellery" className="hover:text-foreground">
+                    Jewellery
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/combos" className="hover:text-foreground">
+                    Combos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/new-arrivals" className="hover:text-foreground">
+                    New Arrivals
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -78,10 +125,14 @@ export function Footer() {
 
         <div className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground">
           <p className="rounded-2xl bg-card/70 p-4 leading-relaxed">
-            <span className="font-medium text-foreground">Replacement Policy:</span> We accept replacements only — no
-            returns. Please send a video proof of any issue to our WhatsApp at{" "}
-            <a className="text-accent hover:underline" href={waLink("Hi, I'd like to raise a replacement request.")} target="_blank" rel="noreferrer">
-              {BRAND.phone}
+            <span className="font-medium text-foreground">Replacement Policy:</span> Free shipping on orders above ₹1000. No returns or exchanges. Damage claims will be considered only with a clear, full, uncut unboxing video shared on WhatsApp at{" "}
+            <a
+              href="https://wa.me/917483821247"
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent hover:underline"
+            >
+              +91 7483821247
             </a>{" "}
             within 48 hours of delivery.
           </p>

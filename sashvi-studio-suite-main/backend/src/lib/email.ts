@@ -1,19 +1,25 @@
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.EMAIL_FROM || 'Sashvi Studio <orders@sashvistudio.in>';
+let _resend: Resend | null = null;
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
+const FROM = process.env.EMAIL_FROM || "Sashvi Studio <orders@sashvistudio.in>";
 
 export async function sendEmail(to: string, subject: string, html: string) {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not set — skipping email');
+    console.warn("RESEND_API_KEY not set — skipping email");
     return;
   }
-  const { error } = await resend.emails.send({ from: FROM, to, subject, html });
-  if (error) console.warn('Resend error:', error);
+  const { error } = await getResend().emails.send({ from: FROM, to, subject, html });
+  if (error) console.warn("Resend error:", error);
 }
 
 function formatINR(n: number) {
-  return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    "₹" + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  );
 }
 
 export function buildOrderConfirmationEmail(opts: {
@@ -27,7 +33,17 @@ export function buildOrderConfirmationEmail(opts: {
   address: string;
   mobile: string;
 }) {
-  const { customerName, orderId, items, subtotal, deliveryCharge, gatewayCharge, grandTotal, address, mobile } = opts;
+  const {
+    customerName,
+    orderId,
+    items,
+    subtotal,
+    deliveryCharge,
+    gatewayCharge,
+    grandTotal,
+    address,
+    mobile,
+  } = opts;
 
   const itemRows = items
     .map(
@@ -36,9 +52,9 @@ export function buildOrderConfirmationEmail(opts: {
         <td style="padding:10px 12px;border-bottom:1px solid #f0e8de;color:#3d2b1f;font-size:14px;">${item.name}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #f0e8de;color:#3d2b1f;font-size:14px;text-align:center;">${item.qty}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #f0e8de;color:#3d2b1f;font-size:14px;text-align:right;">${formatINR(item.price)}</td>
-      </tr>`
+      </tr>`,
     )
-    .join('');
+    .join("");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -135,44 +151,6 @@ export function buildOrderConfirmationEmail(opts: {
         </table>
       </td>
     </tr>
-  </table>
-</body>
-</html>`;
-}
-
-export function buildVerificationEmail(name: string, verifyUrl: string) {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><title>Verify your Sashvi Studio account</title></head>
-<body style="margin:0;padding:0;background:#faf6f1;font-family:'Georgia',serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#faf6f1;padding:32px 16px;">
-    <tr><td align="center">
-      <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.07);">
-        <tr>
-          <td style="background:#2c1a0e;padding:28px 40px;text-align:center;">
-            <div style="font-family:'Georgia',serif;font-size:20px;font-weight:bold;color:#f5e6c8;letter-spacing:2px;">SASHVI STUDIO</div>
-            <div style="font-size:11px;color:#c9a87c;letter-spacing:3px;margin-top:4px;">SAREES &amp; JEWELLERY</div>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:36px 40px;text-align:center;">
-            <p style="margin:0 0 8px;font-size:16px;color:#2c1a0e;">Hello <strong>${name}</strong>,</p>
-            <p style="margin:0 0 28px;font-size:14px;color:#5a4438;line-height:1.7;">
-              Thank you for creating your Sashvi Studio account. Please verify your email address to complete registration.
-            </p>
-            <a href="${verifyUrl}" style="display:inline-block;background:#2c1a0e;color:#f5e6c8;text-decoration:none;padding:14px 36px;border-radius:50px;font-size:13px;letter-spacing:2px;text-transform:uppercase;">
-              Verify Email
-            </a>
-            <p style="margin:24px 0 0;font-size:12px;color:#9a7a60;">This link expires in 24 hours.</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="background:#f5ede3;padding:16px 40px;text-align:center;border-top:1px solid #e8d5c0;">
-            <p style="margin:0;font-size:11px;color:#9a7a60;">sashvistudio© ${new Date().getFullYear()}. All rights reserved.</p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
   </table>
 </body>
 </html>`;

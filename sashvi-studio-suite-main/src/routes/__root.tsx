@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { Toaster } from "sonner";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -79,12 +80,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
       { title: "Sashvi Studio — Sarees & Jewellery" },
-      { name: "description", content: "Sashvi Studio — thoughtfully curated sarees, South Indian imitation jewellery, and ready-to-style combos. Styled to Complete You." },
+      {
+        name: "description",
+        content:
+          "Sashvi Studio — thoughtfully curated sarees, South Indian imitation jewellery, and ready-to-style combos. Styled to Complete You.",
+      },
       { name: "author", content: "Sashvi Studio" },
       { property: "og:title", content: "Sashvi Studio — Sarees & Jewellery" },
-      { property: "og:description", content: "Styled to Complete You — luxury ethnic sarees & jewellery." },
+      {
+        property: "og:description",
+        content: "Styled to Complete You — luxury ethnic sarees & jewellery.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -112,6 +120,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="top-right" richColors closeButton />
         <Scripts />
       </body>
     </html>

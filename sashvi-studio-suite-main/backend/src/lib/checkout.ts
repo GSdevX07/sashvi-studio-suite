@@ -1,22 +1,43 @@
-export const COD_CHARGE = 50;
+export const DELIVERY_THRESHOLD = 1999;
+export const DELIVERY_FEE = 100;
+export const GATEWAY_PERCENTAGE = 0.03;
+
 export function calculateDelivery(productTotal: number) {
-  return productTotal > 1999 ? 0 : 100;
+  return productTotal >= DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
 }
 
 export function calculateGatewayCharge(amount: number) {
-  return Math.ceil(amount * 0.03);
+  return Math.ceil(amount * GATEWAY_PERCENTAGE);
 }
 
-export function calculateCodCharge(paymentMode: 'cod' | 'prepaid') {
-  return paymentMode === 'cod' ? COD_CHARGE : 0;
-}
-
-export function calculateOrderTotals(productTotal: number, paymentMode: 'cod' | 'prepaid') {
-  const delivery = calculateDelivery(productTotal);
-  const codCharge = calculateCodCharge(paymentMode);
-  const subtotal = productTotal + delivery + codCharge;
-  const gatewayCharge = calculateGatewayCharge(subtotal);
-  const total = subtotal + gatewayCharge;
-  const advance = paymentMode === 'cod' ? Math.ceil((total * 0.1)) : total;
-  return { productTotal, delivery, codCharge, gatewayCharge, total, advance };
+export function calculateOrderTotals(
+  productTotal: number,
+  paymentMode: "cod" | "prepaid",
+  couponDiscount = 0,
+) {
+  const discountedProduct = Math.max(0, productTotal - couponDiscount);
+  const delivery = calculateDelivery(discountedProduct);
+  const subtotalBeforeGateway = discountedProduct + delivery;
+  const gatewayCharge =
+    paymentMode === "prepaid" ? calculateGatewayCharge(subtotalBeforeGateway) : 0;
+  const total = subtotalBeforeGateway + gatewayCharge;
+  
+  // For COD: advance is 10% of product total + delivery + gateway on (advance + delivery)
+  let advance = total;
+  if (paymentMode === "cod") {
+    const advanceBase = Math.ceil(discountedProduct * 0.1);
+    const advanceDelivery = delivery; // Include delivery charges
+    const advanceGateway = calculateGatewayCharge(advanceBase + advanceDelivery); // 3% on advance + delivery
+    advance = advanceBase + advanceDelivery + advanceGateway;
+  }
+  
+  return {
+    productTotal,
+    couponDiscount,
+    delivery,
+    codCharge: 0,
+    gatewayCharge,
+    total,
+    advance,
+  };
 }

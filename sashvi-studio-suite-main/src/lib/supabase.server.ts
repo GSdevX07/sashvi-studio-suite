@@ -5,7 +5,9 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL ?? "";
 const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
 
 if (!supabaseUrl || !supabaseKey) {
-  console.warn("[supabase.server] Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY — Supabase will not be available.");
+  console.warn(
+    "[supabase.server] Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY — Supabase will not be available.",
+  );
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {

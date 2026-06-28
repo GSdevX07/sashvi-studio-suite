@@ -16,6 +16,8 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
 import { Route as SareesRouteImport } from './routes/sarees'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
+import { Route as PaymentFailedRouteImport } from './routes/payment-failed'
 import { Route as NewArrivalsRouteImport } from './routes/new-arrivals'
 import { Route as MyAccountRouteImport } from './routes/my-account'
 import { Route as JewelleryRouteImport } from './routes/jewellery'
@@ -63,6 +65,16 @@ const SareesRoute = SareesRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
+  id: '/payment-success',
+  path: '/payment-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentFailedRoute = PaymentFailedRouteImport.update({
+  id: '/payment-failed',
+  path: '/payment-failed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewArrivalsRoute = NewArrivalsRouteImport.update({
@@ -144,6 +156,8 @@ export interface FileRoutesByFullPath {
   '/jewellery': typeof JewelleryRoute
   '/my-account': typeof MyAccountRoute
   '/new-arrivals': typeof NewArrivalsRoute
+  '/payment-failed': typeof PaymentFailedRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sarees': typeof SareesRoute
   '/shipping-policy': typeof ShippingPolicyRoute
@@ -166,6 +180,8 @@ export interface FileRoutesByTo {
   '/jewellery': typeof JewelleryRoute
   '/my-account': typeof MyAccountRoute
   '/new-arrivals': typeof NewArrivalsRoute
+  '/payment-failed': typeof PaymentFailedRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sarees': typeof SareesRoute
   '/shipping-policy': typeof ShippingPolicyRoute
@@ -189,6 +205,8 @@ export interface FileRoutesById {
   '/jewellery': typeof JewelleryRoute
   '/my-account': typeof MyAccountRoute
   '/new-arrivals': typeof NewArrivalsRoute
+  '/payment-failed': typeof PaymentFailedRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sarees': typeof SareesRoute
   '/shipping-policy': typeof ShippingPolicyRoute
@@ -213,6 +231,8 @@ export interface FileRouteTypes {
     | '/jewellery'
     | '/my-account'
     | '/new-arrivals'
+    | '/payment-failed'
+    | '/payment-success'
     | '/privacy-policy'
     | '/sarees'
     | '/shipping-policy'
@@ -235,6 +255,8 @@ export interface FileRouteTypes {
     | '/jewellery'
     | '/my-account'
     | '/new-arrivals'
+    | '/payment-failed'
+    | '/payment-success'
     | '/privacy-policy'
     | '/sarees'
     | '/shipping-policy'
@@ -257,6 +279,8 @@ export interface FileRouteTypes {
     | '/jewellery'
     | '/my-account'
     | '/new-arrivals'
+    | '/payment-failed'
+    | '/payment-success'
     | '/privacy-policy'
     | '/sarees'
     | '/shipping-policy'
@@ -280,6 +304,8 @@ export interface RootRouteChildren {
   JewelleryRoute: typeof JewelleryRoute
   MyAccountRoute: typeof MyAccountRoute
   NewArrivalsRoute: typeof NewArrivalsRoute
+  PaymentFailedRoute: typeof PaymentFailedRoute
+  PaymentSuccessRoute: typeof PaymentSuccessRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SareesRoute: typeof SareesRoute
   ShippingPolicyRoute: typeof ShippingPolicyRoute
@@ -339,6 +365,20 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-success': {
+      id: '/payment-success'
+      path: '/payment-success'
+      fullPath: '/payment-success'
+      preLoaderRoute: typeof PaymentSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-failed': {
+      id: '/payment-failed'
+      path: '/payment-failed'
+      fullPath: '/payment-failed'
+      preLoaderRoute: typeof PaymentFailedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/new-arrivals': {
@@ -448,6 +488,8 @@ const rootRouteChildren: RootRouteChildren = {
   JewelleryRoute: JewelleryRoute,
   MyAccountRoute: MyAccountRoute,
   NewArrivalsRoute: NewArrivalsRoute,
+  PaymentFailedRoute: PaymentFailedRoute,
+  PaymentSuccessRoute: PaymentSuccessRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SareesRoute: SareesRoute,
   ShippingPolicyRoute: ShippingPolicyRoute,

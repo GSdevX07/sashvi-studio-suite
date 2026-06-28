@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type RealtimeChannel } from "@supabase/supabase-js";
 import { Star, Image, Send } from "lucide-react";
 import { PRODUCTS } from "@/lib/products";
 import { supabase } from "@/lib/supabase.client";
@@ -55,11 +55,11 @@ export function RealtimeReviews() {
   );
 
   useEffect(() => {
-    let subscription: SupabaseClient | null = null;
+    let subscription: RealtimeChannel | null = null;
 
     async function loadReviews() {
       const { data, error } = await supabase
-        .from<ReviewRecord>("reviews")
+        .from("reviews")
         .select("id,name,rating,comment,product_slug,product_image_url,verified,created_at")
         .order("created_at", { ascending: false })
         .limit(10);
@@ -75,12 +75,16 @@ export function RealtimeReviews() {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       subscription = supabase
         .channel("public:reviews")
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "reviews" }, (payload) => {
-          const newReview = payload.new as ReviewRecord;
-          if (newReview.verified) {
-            setReviews((prev) => [newReview, ...prev]);
-          }
-        })
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "reviews" },
+          (payload) => {
+            const newReview = payload.new as ReviewRecord;
+            if (newReview.verified) {
+              setReviews((prev) => [newReview, ...prev]);
+            }
+          },
+        )
         .subscribe();
     } catch (err) {
       console.warn("Realtime subscription failed", err);
@@ -117,7 +121,7 @@ export function RealtimeReviews() {
     setSubmitting(true);
 
     try {
-      let imageUrl: string | undefined;
+      let imageUrl: string | null = null;
       if (imageFile) {
         imageUrl = await uploadImage(imageFile);
       }
@@ -154,25 +158,35 @@ export function RealtimeReviews() {
       <div className="grid gap-10 xl:grid-cols-[1.1fr_0.9fr]">
         <div>
           <div className="eyebrow mb-3">Real-Time Reviews</div>
-          <h2 className="font-display text-3xl md:text-4xl text-foreground">Verified customer reviews that refresh instantly.</h2>
+          <h2 className="font-display text-3xl md:text-4xl text-foreground">
+            Verified customer reviews that refresh instantly.
+          </h2>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Share your experience with Sashvi Studio and see customer responses appear without refreshing the page.
+            Share your experience with Sashvi Studio and see customer responses appear without
+            refreshing the page.
           </p>
 
           <div className="mt-10 grid gap-4">
             {reviews.slice(0, 4).map((review) => {
               const product = PRODUCTS.find((p) => p.slug === review.product_slug);
               return (
-                <article key={review.id} className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
+                <article
+                  key={review.id}
+                  className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-accent">
                         {Array.from({ length: review.rating }).map((_, i) => (
                           <Star key={i} className="h-4 w-4 fill-current" />
                         ))}
-                        <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Verified Purchase</span>
+                        <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                          Verified Purchase
+                        </span>
                       </div>
-                      <p className="text-sm leading-relaxed text-foreground/85">“{review.comment}”</p>
+                      <p className="text-sm leading-relaxed text-foreground/85">
+                        “{review.comment}”
+                      </p>
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <span>{review.name}</span>
                         <span>·</span>
@@ -180,7 +194,11 @@ export function RealtimeReviews() {
                       </div>
                     </div>
                     {review.product_image_url ? (
-                      <img src={review.product_image_url} alt={product?.name ?? "Review image"} className="h-20 w-20 rounded-2xl object-cover" />
+                      <img
+                        src={review.product_image_url}
+                        alt={product?.name ?? "Review image"}
+                        className="h-20 w-20 rounded-2xl object-cover"
+                      />
                     ) : null}
                   </div>
                 </article>
@@ -194,13 +212,16 @@ export function RealtimeReviews() {
             <div className="eyebrow">Leave a Review</div>
             <h3 className="font-display text-2xl text-foreground">Add your voice</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Submit a star rating, optional product image, and your favorite Sashvi Studio purchase.
+              Submit a star rating, optional product image, and your favorite Sashvi Studio
+              purchase.
             </p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Product</label>
+              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Product
+              </label>
               <select
                 value={productSlug}
                 onChange={(event) => setProductSlug(event.target.value)}
@@ -215,7 +236,9 @@ export function RealtimeReviews() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Name</label>
+              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Name
+              </label>
               <input
                 type="text"
                 value={name}
@@ -226,7 +249,9 @@ export function RealtimeReviews() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Rating</label>
+              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Rating
+              </label>
               <div className="flex gap-2">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <button
@@ -242,7 +267,9 @@ export function RealtimeReviews() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Review</label>
+              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Review
+              </label>
               <textarea
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
@@ -253,7 +280,9 @@ export function RealtimeReviews() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Product Image (optional)</label>
+              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Product Image (optional)
+              </label>
               <div className="flex items-center gap-3">
                 <input
                   type="file"

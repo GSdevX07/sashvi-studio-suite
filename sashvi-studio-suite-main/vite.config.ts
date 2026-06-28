@@ -23,6 +23,10 @@ export default defineConfig({
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/backend-api/, ""),
         },
+        "/uploads": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
       },
     },
   },

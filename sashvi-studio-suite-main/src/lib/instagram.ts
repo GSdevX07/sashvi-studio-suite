@@ -12,6 +12,7 @@ export interface InstagramFeedItem {
   };
   caption: string;
   isActive: boolean;
+  linkedProducts?: Array<{ name: string; url: string }>;
 }
 
 export const INSTAGRAM_FEED: InstagramFeedItem[] = [

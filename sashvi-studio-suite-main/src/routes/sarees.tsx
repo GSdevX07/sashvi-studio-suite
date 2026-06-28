@@ -1,17 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
-import { byCategory, SAREE_CATEGORIES } from "@/lib/products";
+import { SAREE_CATEGORIES, sortProducts } from "@/lib/products";
+import { useCatalogProducts, useCategoryFilters } from "@/lib/catalog";
 import { CategoryShell } from "@/components/CategoryShell";
 
-type Search = { tag?: string };
+type Search = {
+  tag?: string;
+  sort?: string;
+  minPrice?: number;
+  maxPrice?: number;
+};
 
 export const Route = createFileRoute("/sarees")({
-  validateSearch: (s: Record<string, unknown>): Search => ({ tag: typeof s.tag === "string" ? s.tag : undefined }),
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    tag: typeof s.tag === "string" ? s.tag : undefined,
+    sort: typeof s.sort === "string" ? s.sort : undefined,
+    minPrice: s.minPrice !== undefined ? Number(s.minPrice) : undefined,
+    maxPrice: s.maxPrice !== undefined ? Number(s.maxPrice) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sarees — Sashvi Studio" },
-      { name: "description", content: "Mysore silk, mul cotton, handloom & designer sarees curated by Sashvi Studio." },
+      {
+        name: "description",
+        content: "Mysore silk, mul cotton, handloom & designer sarees curated by Sashvi Studio.",
+      },
       { property: "og:title", content: "Sarees — Sashvi Studio" },
     ],
   }),
@@ -19,24 +33,35 @@ export const Route = createFileRoute("/sarees")({
 });
 
 function SareesPage() {
-  const { tag } = Route.useSearch();
-  const all = byCategory("sarees");
-  const products = tag ? all.filter((p) => p.tags.includes(tag)) : all;
+  const { tag, sort, minPrice, maxPrice } = Route.useSearch();
+  const { products: all } = useCatalogProducts("sarees");
+  const dbFilters = useCategoryFilters("sarees");
+  const filters = dbFilters.length > 0 ? dbFilters : SAREE_CATEGORIES;
+  const filtered = all.filter((p) => {
+    const matchesTag = !tag || p.tags.includes(tag);
+    const matchesMinPrice = minPrice === undefined || p.price >= minPrice;
+    const matchesMaxPrice = maxPrice === undefined || p.price <= maxPrice;
+    return matchesTag && matchesMinPrice && matchesMaxPrice;
+  });
+  const products = sortProducts(filtered, sort || "featured");
 
   return (
     <Layout>
       <CategoryShell
         eyebrow="The Saree Edit"
         title={tag || "All Sarees"}
-        description="Handwoven silks, breathable mul cottons, and artisanal block prints — each piece celebrates craftsmanship and effortless drape."
-        filters={SAREE_CATEGORIES}
+        description="Discover thoughtfully curated sarees crafted for timeless and modern elegance. Also explore our authentic Handloom & Artisanal collections, celebrating craftsmanship from across India."
+        filters={filters}
         activeTag={tag}
+        activeSort={sort}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
         basePath="/sarees"
       >
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} stock={p.stock} />
             ))}
           </div>
         ) : (
