@@ -39,6 +39,7 @@
     "@types/http-errors": "^2.0.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/ms": "^2.1.0",
+    "@types/multer": "^2.1.0",
     "@types/node": "^20.3.1",
     "@types/qs": "^6.15.1",
     "@types/range-parser": "^1.2.7",
