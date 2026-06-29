@@ -27,6 +27,7 @@ import {
   RefreshCw,
   Clock,
   GripVertical,
+  Box,
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Logo } from "@/components/Logo";
@@ -1602,12 +1603,26 @@ function Admin() {
                     <div className="flex items-center justify-between border-b border-border px-6 py-4">
                       <h2 className="font-display text-lg">Notifications</h2>
                       <span className="text-xs uppercase tracking-widest text-accent">
-                        {orders.filter((o) => (o.status === "Cancelled" || o.status === "Replacement Requested") && o.paymentStatus !== "failed" && o.paymentStatus !== "pending").length} pending
+                        {orders.filter((o) => 
+                          (o.status === "Cancelled" || 
+                           o.status === "Replacement Requested" || 
+                           o.status === "Pending" ||
+                           (o.status === "Processing" && o.paymentStatus === "paid") ||
+                           (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "pending")
+                          ) && o.paymentStatus !== "failed"
+                        ).length + products.filter((p) => p.stock <= 5 && p.stock > 0).length} pending
                       </span>
                     </div>
                     <ul className="divide-y divide-border max-h-80 overflow-y-auto">
                       {orders
-                        .filter((o) => (o.status === "Cancelled" || o.status === "Replacement Requested" || o.status === "Pending") && o.paymentStatus !== "failed" && o.paymentStatus !== "pending")
+                        .filter((o) => 
+                          (o.status === "Cancelled" || 
+                           o.status === "Replacement Requested" || 
+                           o.status === "Pending" ||
+                           (o.status === "Processing" && o.paymentStatus === "paid") ||
+                           (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "pending")
+                          ) && o.paymentStatus !== "failed"
+                        )
                         .slice(0, 5)
                         .map((o) => (
                         <li key={o.id} className="px-5 py-3">
@@ -1617,14 +1632,22 @@ function Admin() {
                                 ? "bg-red-100 text-red-600" 
                                 : o.status === "Replacement Requested"
                                   ? "bg-amber-100 text-amber-600"
-                                  : "bg-blue-100 text-blue-600"
+                                  : o.status === "Pending"
+                                    ? "bg-blue-100 text-blue-600"
+                                    : o.paymentType === "cod" && o.paymentStatus === "pending"
+                                      ? "bg-purple-100 text-purple-600"
+                                      : "bg-green-100 text-green-600"
                             }`}>
                               {o.status === "Cancelled" ? (
                                 <X className="h-3 w-3" />
                               ) : o.status === "Replacement Requested" ? (
                                 <RefreshCw className="h-3 w-3" />
-                              ) : (
+                              ) : o.status === "Pending" ? (
                                 <Clock className="h-3 w-3" />
+                              ) : o.paymentType === "cod" && o.paymentStatus === "pending" ? (
+                                <Box className="h-3 w-3" />
+                              ) : (
+                                <Check className="h-3 w-3" />
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
@@ -1634,11 +1657,15 @@ function Admin() {
                                   ? "Order cancelled by customer" 
                                   : o.status === "Replacement Requested"
                                     ? "Replacement requested"
-                                    : "New order pending"
+                                    : o.status === "Pending"
+                                      ? "New order pending"
+                                      : o.paymentType === "cod" && o.paymentStatus === "pending"
+                                        ? "COD order awaiting payment"
+                                        : "Online payment confirmed"
                                 }
                               </div>
                               <div className="text-xs text-muted-foreground mt-1">
-                                {o.customer} · {formatINR(o.total)}
+                                {o.customer} · {formatINR(o.total)} · {o.paymentType === "cod" ? "COD" : "Online"}
                               </div>
                             </div>
                             <button
@@ -1654,7 +1681,42 @@ function Admin() {
                           </div>
                         </li>
                       ))}
-                      {orders.filter((o) => (o.status === "Cancelled" || o.status === "Replacement Requested" || o.status === "Pending") && o.paymentStatus !== "failed" && o.paymentStatus !== "pending").length === 0 && (
+                      {products.filter((p) => p.stock <= 5 && p.stock > 0).slice(0, 3).map((p) => (
+                        <li key={p.id} className="px-5 py-3">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 rounded-full p-1.5 bg-orange-100 text-orange-600">
+                              <TrendingDown className="h-3 w-3" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium">{p.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                Low stock warning
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {p.stock} remaining · {formatINR(p.price)}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveSection("Products");
+                                setEditingProductId(p.id);
+                              }}
+                              className="text-xs text-accent hover:underline"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                      {(orders.filter((o) => 
+                        (o.status === "Cancelled" || 
+                         o.status === "Replacement Requested" || 
+                         o.status === "Pending" ||
+                         (o.status === "Processing" && o.paymentStatus === "paid") ||
+                         (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "pending")
+                        ) && o.paymentStatus !== "failed"
+                      ).length + products.filter((p) => p.stock <= 5 && p.stock > 0).length) === 0 && (
                         <li className="px-5 py-8 text-center text-sm text-muted-foreground">
                           No new notifications
                         </li>
