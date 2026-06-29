@@ -211,6 +211,7 @@ type OrderAdmin = {
   advancePaid?: number;
   totalPaidOnline?: number;
   remainingAmount?: number;
+  notificationSent?: boolean;
   order_items?: Array<{
     product_name?: string;
     product_image?: string;
@@ -1172,6 +1173,18 @@ function Admin() {
     setOrders((prev) => prev.filter((o) => o.id !== id));
   }
 
+  async function markNotificationsAsSent(orderIds: string[]) {
+    try {
+      await apiDirect("orders/notifications/mark-sent", {
+        method: "POST",
+        body: JSON.stringify({ orderIds }),
+      });
+      await reloadOrders();
+    } catch (err) {
+      console.error("Failed to mark notifications as sent:", err);
+    }
+  }
+
   // ── Order Request handlers ────────────────────────────────────────────────────────────
 
   async function approveRequest(id: string) {
@@ -1602,25 +1615,28 @@ function Admin() {
                   <section className="rounded-2xl border border-border bg-card">
                     <div className="flex items-center justify-between border-b border-border px-6 py-4">
                       <h2 className="font-display text-lg">Notifications</h2>
-                      <span className="text-xs uppercase tracking-widest text-accent">
-                        {orders.filter((o) => 
-                          (o.status === "Cancelled" || 
-                           o.status === "Replacement Requested" || 
-                           o.status === "Pending" ||
-                           (o.status === "Processing" && o.paymentStatus === "paid")
-                          ) && o.paymentStatus !== "failed"
-                        ).length + products.filter((p) => p.stock <= 5 && p.stock > 0).length} pending
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const unsentOrderIds = orders.filter((o) => !o.notificationSent).map((o) => o.id);
+                            if (unsentOrderIds.length > 0) {
+                              markNotificationsAsSent(unsentOrderIds);
+                            }
+                          }}
+                          disabled={orders.filter((o) => !o.notificationSent).length === 0}
+                          className="text-xs text-accent hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Mark all as read
+                        </button>
+                        <span className="text-xs uppercase tracking-widest text-accent">
+                          {orders.filter((o) => !o.notificationSent).length + products.filter((p) => p.stock <= 5).length} pending
+                        </span>
+                      </div>
                     </div>
                     <ul className="divide-y divide-border max-h-80 overflow-y-auto">
                       {orders
-                        .filter((o) => 
-                          (o.status === "Cancelled" || 
-                           o.status === "Replacement Requested" || 
-                           o.status === "Pending" ||
-                           (o.status === "Processing" && o.paymentStatus === "paid")
-                          ) && o.paymentStatus !== "failed"
-                        )
+                        .filter((o) => !o.notificationSent)
                         .slice(0, 5)
                         .map((o) => (
                         <li key={o.id} className="px-5 py-3">
@@ -1679,19 +1695,19 @@ function Admin() {
                           </div>
                         </li>
                       ))}
-                      {products.filter((p) => p.stock <= 5 && p.stock > 0).slice(0, 3).map((p) => (
+                      {products.filter((p) => p.stock <= 5).slice(0, 3).map((p) => (
                         <li key={p.id} className="px-5 py-3">
                           <div className="flex items-start gap-3">
-                            <div className="mt-0.5 rounded-full p-1.5 bg-orange-100 text-orange-600">
-                              <TrendingDown className="h-3 w-3" />
+                            <div className={`mt-0.5 rounded-full p-1.5 ${p.stock === 0 ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"}`}>
+                              {p.stock === 0 ? <X className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="truncate text-sm font-medium">{p.name}</div>
                               <div className="text-xs text-muted-foreground">
-                                Low stock warning
+                                {p.stock === 0 ? "Out of stock" : "Low stock warning"}
                               </div>
                               <div className="text-xs text-muted-foreground mt-1">
-                                {p.stock} remaining · {formatINR(p.price)}
+                                {p.stock === 0 ? "0 remaining" : `${p.stock} remaining`} · {formatINR(p.price)}
                               </div>
                             </div>
                             <button
@@ -1707,13 +1723,7 @@ function Admin() {
                           </div>
                         </li>
                       ))}
-                      {(orders.filter((o) => 
-                        (o.status === "Cancelled" || 
-                         o.status === "Replacement Requested" || 
-                         o.status === "Pending" ||
-                         (o.status === "Processing" && o.paymentStatus === "paid")
-                        ) && o.paymentStatus !== "failed"
-                      ).length + products.filter((p) => p.stock <= 5 && p.stock > 0).length) === 0 && (
+                      {(orders.filter((o) => !o.notificationSent).length + products.filter((p) => p.stock <= 5).length) === 0 && (
                         <li className="px-5 py-8 text-center text-sm text-muted-foreground">
                           No new notifications
                         </li>

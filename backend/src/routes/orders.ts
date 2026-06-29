@@ -61,6 +61,7 @@ function mapAdminOrder(o: Record<string, unknown>) {
     advancePaid: Number(o.advance_paid ?? 0),
     totalPaidOnline: Number(o.total_paid_online ?? 0),
     remainingAmount: Number(o.remaining_amount ?? 0),
+    notificationSent: Boolean(o.notification_sent ?? false),
   };
 }
 
@@ -195,6 +196,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     payment_status: paymentMode === "cod" ? "partially_paid" : "pending",
     payment_type: paymentMode === "cod" ? "COD" : "Online",
     order_status: "pending",
+    notification_sent: false,
     created_at: new Date().toISOString(),
   };
 
@@ -612,6 +614,7 @@ ordersRouter.post('/:id/replacement', requireAuth as any, async (req: AuthedRequ
       .update({
         replacement_reason: reason || 'Customer requested replacement',
         replacement_description: description || '',
+        notification_sent: false, // Reset notification for replacement requests
       })
       .eq('id', order.id);
 
@@ -619,6 +622,29 @@ ordersRouter.post('/:id/replacement', requireAuth as any, async (req: AuthedRequ
     return res.json({ ok: true, order_id: order.order_id, status: 'replacement_requested' });
   } catch (e) {
     console.error('Unexpected error requesting replacement:', e);
+    return res.status(500).json({ error: 'server_error', detail: (e as Error).message });
+  }
+});
+
+// Admin: Mark notification as sent
+ordersRouter.post('/notifications/mark-sent', requireAuth as any, async (req: AuthedRequest, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'forbidden' });
+
+  const { orderIds } = req.body;
+  if (!orderIds || !Array.isArray(orderIds)) {
+    return res.status(400).json({ error: 'orderIds required' });
+  }
+
+  try {
+    await supabase
+      .from('orders')
+      .update({ notification_sent: true })
+      .in('id', orderIds);
+
+    console.log('Notifications marked as sent:', orderIds);
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('Error marking notifications as sent:', e);
     return res.status(500).json({ error: 'server_error', detail: (e as Error).message });
   }
 });
