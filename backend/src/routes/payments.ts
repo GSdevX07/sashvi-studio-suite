@@ -119,7 +119,7 @@ paymentsRouter.post("/razorpay/verify", requireAuth as any, async (req: AuthedRe
       const { data: orderItems } = await supabase
         .from("order_items")
         .select("*")
-        .eq("order_id", order.id);
+        .eq("order_id", order.order_id);
 
       if (orderItems && orderItems.length > 0) {
         const items = orderItems.map((item: any) => ({
@@ -137,7 +137,7 @@ paymentsRouter.post("/razorpay/verify", requireAuth as any, async (req: AuthedRe
       const { data: orderItems } = await supabase
         .from("order_items")
         .select("quantity, price, product_id, product_name")
-        .eq("order_id", order.id);
+        .eq("order_id", order.order_id);
 
       // Fetch product titles for the email
       const productIds = (orderItems || []).map((i: any) => i.product_id).filter(Boolean);
