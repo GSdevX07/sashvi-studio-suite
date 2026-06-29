@@ -1,5 +1,13 @@
 import { supabase } from '@/lib/supabase.client';
 
+type RealtimePostgresChangesPayload<T = any> = {
+  new: T;
+  old: T | null;
+  errors: string[] | null;
+};
+
+type RealtimeSubscriptionStatus = 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'JOINING';
+
 // Singleton pattern to ensure only one subscription exists
 let globalChannel: ReturnType<typeof supabase.channel> | null = null;
 let globalUnsubscribe: (() => void) | null = null;
@@ -36,8 +44,8 @@ export function subscribeOrderStatus(
     .on(
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${userId}` },
-      (payload) => {
-        const record = (payload as any).new;
+      (payload: RealtimePostgresChangesPayload) => {
+        const record = payload.new;
         if (record?.order_id && record?.order_status) {
           onUpdate({ order_id: record.order_id, new_status: record.order_status });
         }
@@ -142,7 +150,7 @@ export function setupRealtimeSubscriptions(callbacks: RealtimeCallbacks): () => 
         callbacks.onInstagramFeedChange();
       },
     )
-    .subscribe((status) => {
+    .subscribe((status: RealtimeSubscriptionStatus) => {
       callbacks.onConnectionChange(status === "SUBSCRIBED");
     });
 
