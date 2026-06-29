@@ -18,6 +18,18 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
   const discount = normalizeDiscountFields(product);
   const discountBadge = getPremiumDiscountBadge(product);
 
+  // Calculate sale price if discount exists
+  let salePrice = product.price;
+  let originalPrice = product.price;
+  if (hasProductDiscount(product) && discount.discountType !== "none" && discount.discountValue > 0) {
+    originalPrice = product.price;
+    if (discount.discountType === "fixed") {
+      salePrice = Math.max(0, product.price - discount.discountValue);
+    } else if (discount.discountType === "percent") {
+      salePrice = Math.max(0, product.price - (product.price * discount.discountValue / 100));
+    }
+  }
+
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     if (!isLoggedIn) {
@@ -27,7 +39,7 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: salePrice,
       image: product.image,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
@@ -113,7 +125,10 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
           </Link>
         </h3>
         <div className="mt-1.5 flex items-baseline gap-2">
-          <span className="text-[18px] sm:text-[22px] font-medium text-foreground">{formatINR(product.price)}</span>
+          <span className="text-[18px] sm:text-[22px] font-medium text-foreground">{formatINR(salePrice)}</span>
+          {hasProductDiscount(product) && discount.discountType !== "none" && discount.discountValue > 0 && (
+            <span className="text-sm text-muted-foreground line-through">{formatINR(originalPrice)}</span>
+          )}
         </div>
         {showRemove && (
           <button
