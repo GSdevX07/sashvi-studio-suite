@@ -46,7 +46,9 @@ export default {
         const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
         const targetPath = url.pathname.replace(/^\/backend-api/, "") + url.search;
         const target = new URL(targetPath, backendUrl);
+
         const headers = new Headers(request.headers);
+
         const init: RequestInit & { duplex?: "half" } = {
           method: request.method,
           headers,
@@ -57,7 +59,20 @@ export default {
           init.duplex = "half";
         }
 
-        return fetch(target.toString(), init);
+        const response = await fetch(target.toString(), init);
+
+        const responseHeaders = new Headers(response.headers);
+
+        // Remove compression headers to avoid ERR_CONTENT_DECODING_FAILED
+        responseHeaders.delete("content-encoding");
+        responseHeaders.delete("content-length");
+        responseHeaders.delete("transfer-encoding");
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
       }
       if (url.pathname.startsWith("/api/")) {
         return await handleApiRequest(request);
