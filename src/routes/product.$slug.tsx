@@ -279,9 +279,25 @@ function ProductPage() {
           </div>
 
           <div className="mt-4 sm:mt-5 flex items-baseline gap-3">
-            <span className="font-display text-2xl sm:text-3xl text-foreground">
-              {formatINR(product.price)}
-            </span>
+            {(() => {
+              const d = normalizeDiscountFields(product);
+              const hasDiscount = d.discountType !== "none" && d.discountValue > 0;
+              const salePrice = hasDiscount 
+                ? (d.discountType === "percent" 
+                    ? Math.max(0, product.price - (product.price * d.discountValue / 100))
+                    : Math.max(0, product.price - d.discountValue))
+                : product.price;
+              return (
+                <>
+                  <span className="font-display text-2xl sm:text-3xl text-foreground">
+                    {formatINR(salePrice)}
+                  </span>
+                  {hasDiscount && (
+                    <span className="text-lg text-muted-foreground line-through">{formatINR(product.price)}</span>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           <p className="mt-4 sm:mt-6 text-sm sm:text-base text-foreground/80 leading-relaxed">{product.description}</p>
