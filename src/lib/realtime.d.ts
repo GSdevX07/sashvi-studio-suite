@@ -1,4 +1,4 @@
-declare module '@/lib/realtime.client' {
+declare module '@/lib/realtime' {
   /**
    * Subscribe to order status change events for a specific user.
    * Returns an unsubscribe function.

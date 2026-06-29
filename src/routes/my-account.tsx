@@ -369,7 +369,7 @@ function MyAccountPage() {
   useEffect(() => {
     if (!isLoggedIn || !userProfile?.id) return;
     let unsub: (() => void) | undefined;
-    import("@/lib/realtime.client").then(({ subscribeOrderStatus }) => {
+    import("@/lib/realtime").then(({ subscribeOrderStatus }) => {
       unsub = subscribeOrderStatus(userProfile.id, (payload) => {
         setOrders((prev) =>
           prev.map((o) =>

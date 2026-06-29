@@ -67,7 +67,7 @@ function createThrottledSetter(
   setter: (updater: (prev: number) => number) => void,
   lastUpdateRef: React.MutableRefObject<number>,
   resourceKey: string,
-  queueRef: React.MutableRefObject<Map<string, NodeJS.Timeout>>,
+  queueRef: React.MutableRefObject<Map<string, ReturnType<typeof setTimeout>>>,
   activeRefreshesRef: React.MutableRefObject<Set<string>>,
 ): () => void {
   return () => {
@@ -131,7 +131,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const lastInstagramFeedUpdate = useRef(0);
 
   // Refresh queue to batch requests
-  const refreshQueueRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const refreshQueueRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const activeRefreshesRef = useRef<Set<string>>(new Set());
 
   const refreshProducts = useCallback(
@@ -194,7 +194,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         onConnectionChange: (connected: boolean) => void;
       }
     ) => {
-      const { setupRealtimeSubscriptions } = await import("./realtime.client");
+      const { setupRealtimeSubscriptions } = await import("./realtime");
       return setupRealtimeSubscriptions(callbacks);
     }
   );
@@ -239,13 +239,13 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       onConnectionChange: (connected: boolean) => {
         if (mountedRef.current) setIsConnected(connected);
       },
-    }).then((unsub) => {
+    }).then((unsub: () => void) => {
       if (mountedRef.current) {
         subscriptionRef.current = unsub;
         isSubscribedRef.current = true;
       }
       isInitializingRef.current = false;
-    }).catch((error) => {
+    }).catch((error: unknown) => {
       console.error("Failed to initialize realtime subscriptions:", error);
       setRealtimeEnabled(false);
       isInitializingRef.current = false;
@@ -264,7 +264,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }
       isSubscribedRef.current = false;
       // Clear all pending refresh timeouts
-      refreshQueueRef.current.forEach((timeout) => clearTimeout(timeout));
+      refreshQueueRef.current.forEach((timeout: ReturnType<typeof setTimeout>) => clearTimeout(timeout));
       refreshQueueRef.current.clear();
     };
   }, []); // Empty dependency array - initialize only once
