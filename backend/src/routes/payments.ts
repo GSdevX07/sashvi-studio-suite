@@ -158,16 +158,26 @@ paymentsRouter.post("/razorpay/verify", requireAuth as any, async (req: AuthedRe
 
       const productTotal = items.reduce((s: number, i: any) => s + i.price * i.qty, 0);
 
+      // For COD orders, use gateway_for_advance; for prepaid, use gateway_charge
+      const gatewayChargeToShow = order.payment_type === "COD"
+        ? Number(order.gateway_for_advance || 0)
+        : Number(order.gateway_charge || 0);
+
       const html = buildOrderConfirmationEmail({
         customerName: order.customer_name,
         orderId: order.order_id,
         items,
         subtotal: productTotal,
         deliveryCharge: Number(order.delivery_charge),
-        gatewayCharge: Number(order.gateway_charge),
+        gatewayCharge: gatewayChargeToShow,
         grandTotal: Number(order.total_amount),
         address: order.address,
         mobile: order.mobile,
+        paymentType: order.payment_type,
+        paymentStatus: order.payment_status,
+        advancePaid: Number(order.advance_paid || 0),
+        totalPaidOnline: Number(order.total_paid_online || 0),
+        remainingAmount: Number(order.remaining_amount || 0),
       });
 
       sendEmail(order.email, `Payment Confirmed — ${order.order_id} | Sashvi Studio`, html).catch(

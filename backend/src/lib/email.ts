@@ -32,6 +32,11 @@ export function buildOrderConfirmationEmail(opts: {
   grandTotal: number;
   address: string;
   mobile: string;
+  paymentType?: string;
+  paymentStatus?: string;
+  advancePaid?: number;
+  totalPaidOnline?: number;
+  remainingAmount?: number;
 }) {
   const {
     customerName,
@@ -43,6 +48,11 @@ export function buildOrderConfirmationEmail(opts: {
     grandTotal,
     address,
     mobile,
+    paymentType,
+    paymentStatus,
+    advancePaid,
+    totalPaidOnline,
+    remainingAmount,
   } = opts;
 
   const itemRows = items
@@ -115,6 +125,45 @@ export function buildOrderConfirmationEmail(opts: {
                   </tr>
                 </tbody>
               </table>
+
+              <!-- Payment Summary -->
+              ${paymentType ? `
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#faf0e4;border-radius:8px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <div style="font-size:12px;color:#8b6040;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Payment Summary</div>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#5a4438;">Payment Type</td>
+                        <td style="padding:6px 0;font-size:13px;color:#3d2b1f;font-weight:bold;text-align:right;">${paymentType}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#5a4438;">Payment Status</td>
+                        <td style="padding:6px 0;font-size:13px;color:#3d2b1f;font-weight:bold;text-align:right;">${paymentStatus || "N/A"}</td>
+                      </tr>
+                      ${advancePaid !== undefined ? `
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#5a4438;">Advance Paid</td>
+                        <td style="padding:6px 0;font-size:13px;color:#3d2b1f;font-weight:bold;text-align:right;">${formatINR(advancePaid)}</td>
+                      </tr>
+                      ` : ""}
+                      ${totalPaidOnline !== undefined ? `
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#5a4438;">Total Paid Online</td>
+                        <td style="padding:6px 0;font-size:13px;color:#3d2b1f;font-weight:bold;text-align:right;">${formatINR(totalPaidOnline)}</td>
+                      </tr>
+                      ` : ""}
+                      ${remainingAmount !== undefined ? `
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#5a4438;">Remaining Amount</td>
+                        <td style="padding:6px 0;font-size:13px;color:#3d2b1f;font-weight:bold;text-align:right;">${formatINR(remainingAmount)}</td>
+                      </tr>
+                      ` : ""}
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              ` : ""}
 
               <!-- Shipping -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#faf0e4;border-radius:8px;margin-bottom:24px;">
