@@ -3,7 +3,7 @@ import { requireAdmin, AuthedRequest } from "../middleware/auth";
 import multer from "multer";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
-import ImageKit from "@imagekit/nodejs";
+import ImageKit from "imagekit";
 
 const uploadRouter = express.Router();
 
