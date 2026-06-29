@@ -108,10 +108,9 @@ paymentsRouter.post("/razorpay/verify", requireAuth as any, async (req: AuthedRe
       .eq("id", orderId)
       .maybeSingle();
 
-    // For COD orders, keep status as partially_paid after advance payment
+    // For COD orders, mark as paid after advance payment is completed
     // For prepaid orders, change status to paid
-    const newPaymentStatus =
-      currentOrder?.payment_type === "COD" ? "partially_paid" : "paid";
+    const newPaymentStatus = "paid";
 
     const { data: order } = await supabase
       .from("orders")

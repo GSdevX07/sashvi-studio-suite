@@ -1607,8 +1607,8 @@ function Admin() {
                           (o.status === "Cancelled" || 
                            o.status === "Replacement Requested" || 
                            o.status === "Pending" ||
-                           (o.status === "Processing" && o.paymentStatus === "paid") ||
-                           (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "pending")
+                           (o.status === "Processing" && o.paymentStatus === "paid" && o.paymentType === "Online") ||
+                           (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "paid")
                           ) && o.paymentStatus !== "failed"
                         ).length + products.filter((p) => p.stock <= 5 && p.stock > 0).length} pending
                       </span>
@@ -1619,8 +1619,8 @@ function Admin() {
                           (o.status === "Cancelled" || 
                            o.status === "Replacement Requested" || 
                            o.status === "Pending" ||
-                           (o.status === "Processing" && o.paymentStatus === "paid") ||
-                           (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "pending")
+                           (o.status === "Processing" && o.paymentStatus === "paid" && o.paymentType === "Online") ||
+                           (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "paid")
                           ) && o.paymentStatus !== "failed"
                         )
                         .slice(0, 5)
@@ -1634,7 +1634,7 @@ function Admin() {
                                   ? "bg-amber-100 text-amber-600"
                                   : o.status === "Pending"
                                     ? "bg-blue-100 text-blue-600"
-                                    : o.paymentType === "cod" && o.paymentStatus === "pending"
+                                    : o.paymentType === "cod"
                                       ? "bg-purple-100 text-purple-600"
                                       : "bg-green-100 text-green-600"
                             }`}>
@@ -1644,7 +1644,7 @@ function Admin() {
                                 <RefreshCw className="h-3 w-3" />
                               ) : o.status === "Pending" ? (
                                 <Clock className="h-3 w-3" />
-                              ) : o.paymentType === "cod" && o.paymentStatus === "pending" ? (
+                              ) : o.paymentType === "cod" ? (
                                 <Box className="h-3 w-3" />
                               ) : (
                                 <Check className="h-3 w-3" />
@@ -1659,8 +1659,8 @@ function Admin() {
                                     ? "Replacement requested"
                                     : o.status === "Pending"
                                       ? "New order pending"
-                                      : o.paymentType === "cod" && o.paymentStatus === "pending"
-                                        ? "COD order awaiting payment"
+                                      : o.paymentType === "cod"
+                                        ? "COD advance payment confirmed"
                                         : "Online payment confirmed"
                                 }
                               </div>
@@ -1713,8 +1713,8 @@ function Admin() {
                         (o.status === "Cancelled" || 
                          o.status === "Replacement Requested" || 
                          o.status === "Pending" ||
-                         (o.status === "Processing" && o.paymentStatus === "paid") ||
-                         (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "pending")
+                         (o.status === "Processing" && o.paymentStatus === "paid" && o.paymentType === "Online") ||
+                         (o.status === "Processing" && o.paymentType === "cod" && o.paymentStatus === "paid")
                         ) && o.paymentStatus !== "failed"
                       ).length + products.filter((p) => p.stock <= 5 && p.stock > 0).length) === 0 && (
                         <li className="px-5 py-8 text-center text-sm text-muted-foreground">
