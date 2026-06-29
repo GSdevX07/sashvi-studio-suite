@@ -1182,6 +1182,7 @@ function Admin() {
       await reloadOrders();
     } catch (err) {
       console.error("Failed to mark notifications as sent:", err);
+      alert("Failed to mark notifications as sent. Please try again.");
     }
   }
 

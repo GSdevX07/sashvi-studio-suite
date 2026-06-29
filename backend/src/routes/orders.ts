@@ -639,7 +639,7 @@ ordersRouter.post('/notifications/mark-sent', requireAuth as any, async (req: Au
     await supabase
       .from('orders')
       .update({ notification_sent: true })
-      .in('id', orderIds);
+      .in('order_id', orderIds);
 
     console.log('Notifications marked as sent:', orderIds);
     return res.json({ ok: true });
