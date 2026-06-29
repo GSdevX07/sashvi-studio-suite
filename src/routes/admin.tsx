@@ -875,7 +875,7 @@ function Admin() {
       apiDirect<{ products: ProductAdmin[] }>("products").catch(() => ({ products: [] })),
       apiDirect<{ categories: CategoryAdmin[] }>("categories/admin/all").catch(() => ({ categories: [] })),
       apiDirect<{ reviews: ReviewAdmin[] }>("reviews").catch(() => ({ reviews: [] })),
-      api<{ feed: InstagramFeedItem[] }>("instagram-feed").catch(() => ({ feed: [] })),
+      apiDirect<{ feed: InstagramFeedItem[] }>("instagram-feed").catch(() => ({ feed: [] })),
       apiDirect<{ coupons: CouponAdmin[] }>("coupons").catch(() => ({ coupons: [] })),
     ])
       .then(([o, req, p, c, rv, ig, cp]) => {
