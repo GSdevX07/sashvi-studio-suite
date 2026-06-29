@@ -11,7 +11,6 @@ import {
   MessageSquare,
   Instagram,
   Tag,
-  Settings,
   TrendingUp,
   TrendingDown,
   IndianRupee,
@@ -94,7 +93,6 @@ const NAV = [
   { label: "Instagram Feed", icon: Instagram },
   { label: "Coupons", icon: Star },
   { label: "Inventory", icon: TrendingUp },
-  { label: "Settings", icon: Settings },
 ] as const;
 
 type AdminSection = (typeof NAV)[number]["label"];
@@ -276,16 +274,6 @@ type CouponAdmin = {
   usageLimit: number;
   minimumPurchase: number;
   active: boolean;
-};
-type SettingsAdmin = {
-  storeName: string;
-  logo: string;
-  contactNumber: string;
-  email: string;
-  address: string;
-  freeDeliveryAbove: number;
-  deliveryCharge: number;
-  gatewayFee: number;
 };
 
 // ─── Helper Components ────────────────────────────────────────────────────────
@@ -745,19 +733,6 @@ function Admin() {
   const [variantStockValue, setVariantStockValue] = useState(0);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
-  // Settings
-  const [settings, setSettings] = useState<SettingsAdmin>({
-    storeName: "Sashvi Studio",
-    logo: "",
-    contactNumber: "+91 98765 43210",
-    email: "support@sashvistudio.com",
-    address: "123 Heritage Lane, Bangalore",
-    freeDeliveryAbove: 1000,
-    deliveryCharge: 100,
-    gatewayFee: 3,
-  });
-  const [settingsSaving, setSettingsSaving] = useState(false);
-
   // ── API helpers ──────────────────────────────────────────────────────────────
 
   function authHeaders(): Record<string, string> {
@@ -902,20 +877,8 @@ function Admin() {
       apiDirect<{ reviews: ReviewAdmin[] }>("reviews").catch(() => ({ reviews: [] })),
       api<{ feed: InstagramFeedItem[] }>("instagram-feed").catch(() => ({ feed: [] })),
       apiDirect<{ coupons: CouponAdmin[] }>("coupons").catch(() => ({ coupons: [] })),
-      api<{ settings: SettingsAdmin }>("settings").catch(() => ({
-        settings: {
-          storeName: "Sashvi Studio",
-          logo: "",
-          contactNumber: "+91 98765 43210",
-          email: "support@sashvistudio.com",
-          address: "123 Heritage Lane, Bangalore",
-          freeDeliveryAbove: 1999,
-          deliveryCharge: 100,
-          gatewayFee: 3,
-        },
-      })),
     ])
-      .then(([o, req, p, c, rv, ig, cp, s]) => {
+      .then(([o, req, p, c, rv, ig, cp]) => {
         setProducts(p.products);
         setCategories(c.categories);
         setOrders(
@@ -935,16 +898,6 @@ function Admin() {
         }));
         setIgFeed(transformedIgFeed);
         setCoupons(cp.coupons);
-        setSettings(s?.settings || {
-          storeName: "Sashvi Studio",
-          logo: "",
-          contactNumber: "+91 98765 43210",
-          email: "support@sashvistudio.com",
-          address: "123 Heritage Lane, Bangalore",
-          freeDeliveryAbove: 1999,
-          deliveryCharge: 100,
-          gatewayFee: 3,
-        });
         setOrderRequests(req);
       })
       .catch((err) => console.warn("Failed to load admin data", err));
@@ -1413,22 +1366,6 @@ function Admin() {
       setEditingStockId(null);
     } catch (err) {
       alert((err as Error).message);
-    }
-  }
-
-  // ── Settings ──────────────────────────────────────────────────────────────────
-
-  async function saveSettings() {
-    setSettingsSaving(true);
-    try {
-      const r = await api<{ settings: SettingsAdmin }>("settings", {
-        method: "PUT",
-        body: JSON.stringify(settings),
-      });
-      setSettings(r.settings);
-      alert("Settings saved successfully.");
-    } finally {
-      setSettingsSaving(false);
     }
   }
 
@@ -3038,99 +2975,6 @@ function Admin() {
               </div>
             )}
 
-            {/* ── SETTINGS ───────────────────────────────────────────── */}
-            {activeSection === "Settings" && (
-              <div className="space-y-6">
-                <SectionHeader title="Settings" />
-                <div className="rounded-2xl border border-border bg-card p-6">
-                  <div className="grid gap-5 lg:grid-cols-2">
-                    <div>
-                      <label className={FL}>Store Name</label>
-                      <input
-                        value={settings.storeName}
-                        onChange={(e) => setSettings((s) => ({ ...s, storeName: e.target.value }))}
-                        className={FI}
-                      />
-                    </div>
-                    <div>
-                      <label className={FL}>Contact Number</label>
-                      <input
-                        value={settings.contactNumber}
-                        onChange={(e) =>
-                          setSettings((s) => ({ ...s, contactNumber: e.target.value }))
-                        }
-                        className={FI}
-                      />
-                    </div>
-                    <div>
-                      <label className={FL}>Support Email</label>
-                      <input
-                        type="email"
-                        value={settings.email}
-                        onChange={(e) => setSettings((s) => ({ ...s, email: e.target.value }))}
-                        className={FI}
-                      />
-                    </div>
-                    <div>
-                      <label className={FL}>Free Delivery Above (₹)</label>
-                      <input
-                        type="number"
-                        value={settings.freeDeliveryAbove}
-                        onChange={(e) =>
-                          setSettings((s) => ({ ...s, freeDeliveryAbove: Number(e.target.value) }))
-                        }
-                        className={FI}
-                        min={0}
-                      />
-                    </div>
-                    <div>
-                      <label className={FL}>Delivery Charge (₹)</label>
-                      <input
-                        type="number"
-                        value={settings.deliveryCharge}
-                        onChange={(e) =>
-                          setSettings((s) => ({ ...s, deliveryCharge: Number(e.target.value) }))
-                        }
-                        className={FI}
-                        min={0}
-                      />
-                    </div>
-                    <div>
-                      <label className={FL}>Gateway Fee (%)</label>
-                      <input
-                        type="number"
-                        value={settings.gatewayFee}
-                        onChange={(e) =>
-                          setSettings((s) => ({ ...s, gatewayFee: Number(e.target.value) }))
-                        }
-                        className={FI}
-                        min={0}
-                        step={0.1}
-                      />
-                    </div>
-                    <div className="lg:col-span-2">
-                      <label className={FL}>Store Address</label>
-                      <textarea
-                        value={settings.address}
-                        onChange={(e) => setSettings((s) => ({ ...s, address: e.target.value }))}
-                        className={FI}
-                        rows={2}
-                      />
-                    </div>
-                    <div className="lg:col-span-2 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={saveSettings}
-                        disabled={settingsSaving}
-                        className={FBtn}
-                      >
-                        {settingsSaving ? "Saving…" : "Save Settings"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
