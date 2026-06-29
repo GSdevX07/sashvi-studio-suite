@@ -41,6 +41,11 @@ export function mapProductRow(p: Record<string, unknown>, variants?: Record<stri
       }))
     : [];
 
+  // Calculate total stock from variants if variants exist, otherwise use main product stock
+  const totalStock = colorVariants.length > 0
+    ? colorVariants.reduce((sum, v) => sum + v.stock, 0)
+    : Number(p.stock ?? 0);
+
   return {
     id: String(p.id ?? ""),
     slug: String(p.slug ?? ""),
@@ -58,7 +63,7 @@ export function mapProductRow(p: Record<string, unknown>, variants?: Record<stri
     images: imageUrls,
     categories: [productType],
     tags: tagName ? [tagName] : [],
-    stock: Number(p.stock ?? 0),
+    stock: totalStock,
     description: String(p.description ?? ""),
     sku: `SS-${String(p.id ?? "")
       .slice(0, 8)
