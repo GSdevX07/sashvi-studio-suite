@@ -169,6 +169,7 @@ paymentsRouter.post("/razorpay/verify", requireAuth as any, async (req: AuthedRe
         items,
         subtotal: productTotal,
         deliveryCharge: Number(order.delivery_charge),
+        codCharge: Number(order.cod_charge || 0),
         gatewayCharge: gatewayChargeToShow,
         grandTotal: Number(order.total_amount),
         address: order.address,

@@ -130,7 +130,7 @@ function CheckoutPage() {
   );
 
   const couponDiscount = appliedCoupon?.discount ?? 0;
-  const { delivery, gatewayCharge, total, advance } = calculateOrderTotals(
+  const { delivery, gatewayCharge, codCharge, total, advance } = calculateOrderTotals(
     effectiveSubtotal,
     paymentMode,
     couponDiscount,
@@ -600,8 +600,12 @@ function CheckoutPage() {
                     <dd>{delivery === 0 ? "FREE" : formatINR(delivery)}</dd>
                   </div>
                   <div className="flex justify-between">
+                    <dt>COD Charges</dt>
+                    <dd>{formatINR(codCharge)}</dd>
+                  </div>
+                  <div className="flex justify-between">
                     <dt>Gateway Charges</dt>
-                    <dd>{formatINR(Math.ceil((Math.ceil(effectiveSubtotal * 0.1) + delivery) * 0.03))}</dd>
+                    <dd>{formatINR(Math.ceil((Math.ceil(effectiveSubtotal * 0.1) + delivery + codCharge) * 0.03))}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt>Advance Payment (COD)</dt>

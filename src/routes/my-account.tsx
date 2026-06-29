@@ -63,6 +63,7 @@ ${itemsHtml}
 <div class="row"><span class="label">Subtotal</span><span class="val">₹${subtotal.toLocaleString("en-IN")}</span></div>
 ${order.coupon_discount > 0 ? `<div class="row"><span class="label">Coupon (${order.coupon_code})</span><span class="val">-₹${order.coupon_discount.toLocaleString("en-IN")}</span></div>` : ''}
 <div class="row"><span class="label">Delivery Charges</span><span class="val">₹${order.delivery_charge.toLocaleString("en-IN")}</span></div>
+${order.cod_charge > 0 ? `<div class="row"><span class="label">COD Charges</span><span class="val">₹${order.cod_charge.toLocaleString("en-IN")}</span></div>` : ''}
 <div class="row"><span class="label">Gateway Fee</span><span class="val">₹${order.gateway_charge.toLocaleString("en-IN")}</span></div>
 <div class="total"><span>Total</span><span>₹${order.total_amount.toLocaleString("en-IN")}</span></div>
 <div class="row"><span class="label">Payment</span><span class="val">${order.payment_status?.replace("_", " ")}</span></div>
@@ -578,6 +579,12 @@ function MyAccountPage() {
                       <dt>Delivery</dt>
                       <dd>{formatINR(selectedOrder.delivery_charge)}</dd>
                     </div>
+                    {selectedOrder.cod_charge > 0 && (
+                      <div className="flex justify-between">
+                        <dt>COD Charges</dt>
+                        <dd>{formatINR(selectedOrder.cod_charge)}</dd>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <dt>Gateway Fee</dt>
                       <dd>{formatINR(selectedOrder.gateway_charge)}</dd>

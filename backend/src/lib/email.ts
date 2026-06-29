@@ -28,6 +28,7 @@ export function buildOrderConfirmationEmail(opts: {
   items: { name: string; qty: number; price: number }[];
   subtotal: number;
   deliveryCharge: number;
+  codCharge: number;
   gatewayCharge: number;
   grandTotal: number;
   address: string;
@@ -44,6 +45,7 @@ export function buildOrderConfirmationEmail(opts: {
     items,
     subtotal,
     deliveryCharge,
+    codCharge,
     gatewayCharge,
     grandTotal,
     address,
@@ -115,6 +117,12 @@ export function buildOrderConfirmationEmail(opts: {
                     <td colspan="2" style="padding:10px 12px;text-align:right;font-size:13px;color:#5a4438;">Delivery Charges:</td>
                     <td style="padding:10px 12px;text-align:right;font-size:13px;color:#3d2b1f;">${formatINR(deliveryCharge)}</td>
                   </tr>
+                  ${codCharge > 0 ? `
+                  <tr>
+                    <td colspan="2" style="padding:10px 12px;text-align:right;font-size:13px;color:#5a4438;">COD Charges:</td>
+                    <td style="padding:10px 12px;text-align:right;font-size:13px;color:#3d2b1f;">${formatINR(codCharge)}</td>
+                  </tr>
+                  ` : ""}
                   <tr>
                     <td colspan="2" style="padding:10px 12px;text-align:right;font-size:13px;color:#5a4438;">Payment gateway charges:</td>
                     <td style="padding:10px 12px;text-align:right;font-size:13px;color:#3d2b1f;">${formatINR(gatewayCharge)}</td>

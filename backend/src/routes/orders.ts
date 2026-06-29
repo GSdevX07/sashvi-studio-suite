@@ -137,6 +137,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   // Calculate payment details for COD
   let advancePaid = 0;
   let deliveryForAdvance = 0;
+  let codForAdvance = 0;
   let gatewayForAdvance = 0;
   let totalPaidOnline = 0;
   let remainingAmount = 0;
@@ -144,8 +145,9 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   if (paymentMode === "cod") {
     advancePaid = Math.ceil(productTotal * 0.10);
     deliveryForAdvance = totals.delivery;
-    gatewayForAdvance = Math.ceil((advancePaid + deliveryForAdvance) * 0.03);
-    totalPaidOnline = advancePaid + deliveryForAdvance + gatewayForAdvance;
+    codForAdvance = totals.codCharge;
+    gatewayForAdvance = Math.ceil((advancePaid + deliveryForAdvance + codForAdvance) * 0.03);
+    totalPaidOnline = advancePaid + deliveryForAdvance + codForAdvance + gatewayForAdvance;
     remainingAmount = totals.total - totalPaidOnline;
   } else {
     advancePaid = totals.total;
@@ -166,12 +168,14 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     total_amount: totals.total,
     gst_amount: 0,
     delivery_charge: totals.delivery,
+    cod_charge: totals.codCharge,
     weekend_discount: 0,
     gateway_charge: totals.gatewayCharge,
     coupon_code: appliedCouponCode,
     coupon_discount: couponDiscount,
     advance_paid: advancePaid,
     delivery_for_advance: deliveryForAdvance,
+    cod_for_advance: codForAdvance,
     gateway_for_advance: gatewayForAdvance,
     total_paid_online: totalPaidOnline,
     remaining_amount: remainingAmount,

@@ -1,5 +1,6 @@
 export const DELIVERY_THRESHOLD = 1000;
 export const DELIVERY_FEE = 100;
+export const COD_CHARGE = 80;
 export const GATEWAY_PERCENTAGE = 0.03;
 export const COUPON_STORAGE_KEY = "sashvi_checkout_coupon";
 
@@ -11,8 +12,8 @@ export function calculateGatewayCharge(subtotal: number) {
   return Math.ceil(subtotal * GATEWAY_PERCENTAGE);
 }
 
-export function calculateCodCharge(_paymentMode: "prepaid" | "cod") {
-  return 0;
+export function calculateCodCharge(paymentMode: "prepaid" | "cod") {
+  return paymentMode === "cod" ? COD_CHARGE : 0;
 }
 
 export function calculateOrderTotals(
@@ -27,13 +28,14 @@ export function calculateOrderTotals(
   const gatewayCharge = paymentMode === "prepaid" ? calculateGatewayCharge(subtotalBeforeGateway) : 0;
   const total = subtotalBeforeGateway + gatewayCharge;
   
-  // For COD: calculate advance payment (10% + delivery + gateway on advance+delivery)
+  // For COD: calculate advance payment (10% + delivery + COD charge + gateway on advance+delivery+COD)
   let advance = total;
   if (paymentMode === "cod") {
     const advanceBase = Math.ceil(discountedProduct * 0.10);
     const advanceDelivery = delivery;
-    const advanceGateway = Math.ceil((advanceBase + advanceDelivery) * 0.03);
-    advance = advanceBase + advanceDelivery + advanceGateway;
+    const advanceCod = codCharge;
+    const advanceGateway = Math.ceil((advanceBase + advanceDelivery + advanceCod) * 0.03);
+    advance = advanceBase + advanceDelivery + advanceCod + advanceGateway;
   }
   
   return { productTotal, delivery, gatewayCharge, codCharge, couponDiscount, total, advance };
