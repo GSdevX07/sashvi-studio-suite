@@ -47,11 +47,17 @@ export default {
         const targetPath = url.pathname.replace(/^\/backend-api/, "") + url.search;
         const target = new URL(targetPath, backendUrl);
         const headers = new Headers(request.headers);
-        return fetch(target.toString(), {
+        const init: RequestInit & { duplex?: "half" } = {
           method: request.method,
           headers,
-          body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
-        });
+        };
+
+        if (request.method !== "GET" && request.method !== "HEAD") {
+          init.body = request.body;
+          init.duplex = "half";
+        }
+
+        return fetch(target.toString(), init);
       }
       if (url.pathname.startsWith("/api/")) {
         return await handleApiRequest(request);
