@@ -246,13 +246,13 @@ function Home() {
                 <div className="flex flex-col items-center text-center">
                   <Truck className="h-4 w-4 sm:h-8 sm:w-8 mb-1 sm:mb-2" style={{ color: '#C79A42' }} />
                   <p className="text-[9px] sm:text-sm font-medium" style={{ color: '#4A2B24' }}>
-                    Pan India delivery<br />with care
+                    Secure payments<br />you can count on
                   </p>
                 </div>
                 <div className="flex flex-col items-center text-center">
                   <Shield className="h-4 w-4 sm:h-8 sm:w-8 mb-1 sm:mb-2" style={{ color: '#C79A42' }} />
                   <p className="text-[9px] sm:text-sm font-medium" style={{ color: '#4A2B24' }}>
-                    Secure payments<br />you can count on
+                    Customer support<br />always available
                   </p>
                 </div>
               </div>
@@ -365,13 +365,13 @@ function Home() {
               <div className="flex flex-col items-center text-center">
                 <Truck className="h-8 w-8 mb-2" style={{ color: '#C79A42' }} />
                 <p className="text-sm font-medium" style={{ color: '#4A2B24' }}>
-                  Pan India delivery<br />with care
+                  Secure payments<br />you can count on
                 </p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <Shield className="h-8 w-8 mb-2" style={{ color: '#C79A42' }} />
                 <p className="text-sm font-medium" style={{ color: '#4A2B24' }}>
-                  Secure payments<br />you can count on
+                  Customer support<br />always available
                 </p>
               </div>
             </div>

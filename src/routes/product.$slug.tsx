@@ -397,21 +397,6 @@ function ProductPage() {
             </button>
           </div>
 
-          <div className="mt-8 grid gap-3 rounded-2xl border border-border bg-card p-5 text-sm sm:grid-cols-3">
-            <div className="flex items-center gap-2">
-              <Truck className="h-4 w-4 text-accent" /> Pan-India shipping
-            </div>
-            <div className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4 text-accent" /> 48-hr replacement
-            </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-accent" /> Authentic craft
-            </div>
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Replacement only (no returns). Send video proof to {BRAND.phone} on WhatsApp within 48
-            hours.
-          </p>
         </div>
       </section>
 
