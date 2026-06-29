@@ -130,7 +130,7 @@ function CheckoutPage() {
   );
 
   const couponDiscount = appliedCoupon?.discount ?? 0;
-  const { delivery, gatewayCharge, codCharge, total, advance } = calculateOrderTotals(
+  const { delivery, gatewayCharge, codCharge, total, advance, remainingAmount } = calculateOrderTotals(
     effectiveSubtotal,
     paymentMode,
     couponDiscount,
@@ -618,7 +618,7 @@ function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-base font-medium">
                     <dt>Remaining Amount (COD)</dt>
-                    <dd className="text-muted-foreground">{formatINR(total - advancePayment)}</dd>
+                    <dd className="text-muted-foreground">{formatINR(remainingAmount)}</dd>
                   </div>
                   <div className="flex justify-between text-base font-medium">
                     <dt>Grand Total</dt>

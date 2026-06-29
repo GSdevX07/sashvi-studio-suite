@@ -148,7 +148,9 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     codForAdvance = totals.codCharge;
     gatewayForAdvance = Math.ceil((advancePaid + deliveryForAdvance + codForAdvance) * 0.03);
     totalPaidOnline = advancePaid + deliveryForAdvance + codForAdvance + gatewayForAdvance;
-    remainingAmount = totals.total - totalPaidOnline;
+    // Remaining amount = (product + delivery) - advance payment (service charges don't reduce remaining)
+    const discountedProduct = Math.max(0, productTotal - couponDiscount);
+    remainingAmount = (discountedProduct + totals.delivery) - advancePaid;
   } else {
     advancePaid = totals.total;
     totalPaidOnline = totals.total;

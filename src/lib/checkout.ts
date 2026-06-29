@@ -38,5 +38,11 @@ export function calculateOrderTotals(
     advance = advanceBase + advanceDelivery + advanceCod + advanceGateway;
   }
   
-  return { productTotal, delivery, gatewayCharge, codCharge, couponDiscount, total, advance };
+  // Calculate remaining amount for COD (product + delivery - advance, service charges don't reduce remaining)
+  let remainingAmount = 0;
+  if (paymentMode === "cod") {
+    remainingAmount = (discountedProduct + delivery) - Math.ceil(discountedProduct * 0.10);
+  }
+
+  return { productTotal, delivery, gatewayCharge, codCharge, couponDiscount, total, advance, remainingAmount };
 }
