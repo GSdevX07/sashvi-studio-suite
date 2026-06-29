@@ -53,7 +53,7 @@ function downloadInvoice(order: any) {
 <div class="brand"><h1>Sashvi Studio</h1><p>Sarees &amp; Jewellery</p></div>
 <div class="inv">Invoice</div>
 <div class="row"><span class="label">Order ID</span><span class="val">${order.order_id}</span></div>
-<div class="row"><span class="label">Date</span><span class="val">${new Date(order.created_at).toLocaleDateString()}</span></div>
+<div class="row"><span class="label">Date</span><span class="val">${new Date(order.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</span></div>
 <div class="row"><span class="label">Customer</span><span class="val">${order.customer_name}</span></div>
 <div class="row"><span class="label">Email</span><span class="val">${order.email}</span></div>
 <div class="row"><span class="label">Mobile</span><span class="val">${order.mobile}</span></div>
@@ -428,7 +428,7 @@ function MyAccountPage() {
               <div>
                 <h1 className="font-display text-3xl mb-2">Order {selectedOrder.order_id}</h1>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Placed on {new Date(selectedOrder.created_at).toLocaleDateString()}
+                  Placed on {new Date(selectedOrder.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                 </p>
                 <p className="text-sm text-muted-foreground mb-8">
                   {selectedOrder.city || 'N/A'}, {selectedOrder.state || 'N/A'} - {selectedOrder.pincode || 'N/A'}
@@ -901,7 +901,7 @@ function MyAccountPage() {
                                     `+ ${order.order_items.length - 1} more`}
                                 </div>
                                 <div className="text-sm text-muted-foreground mt-0.5">
-                                  {new Date(order.created_at).toLocaleDateString()}
+                                  {new Date(order.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                 </div>
                               </div>
                             </div>

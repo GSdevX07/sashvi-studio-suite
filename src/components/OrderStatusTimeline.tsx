@@ -82,7 +82,16 @@ export default function OrderStatusTimeline({ order }: OrderStatusTimelineProps)
       {stages.map((stage, idx) => {
         const isCompleted = idx < currentIndex;
         const isCurrent = idx === currentIndex;
-        const date = stage.timestamp ? format(new Date(stage.timestamp), 'MMM d, h:mm a') : '';
+        const date = stage.timestamp 
+          ? new Intl.DateTimeFormat('en-IN', {
+              timeZone: 'Asia/Kolkata',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }).format(new Date(stage.timestamp))
+          : '';
 
         return (
           <div key={stage.status} className="relative flex items-center gap-4">
