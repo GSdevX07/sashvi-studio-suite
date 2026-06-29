@@ -1,4 +1,4 @@
-export const DELIVERY_THRESHOLD = 1999;
+export const DELIVERY_THRESHOLD = 1000;
 export const DELIVERY_FEE = 100;
 export const COD_CHARGE = 80;
 export const GATEWAY_PERCENTAGE = 0.03;
@@ -24,14 +24,16 @@ export function calculateOrderTotals(
     paymentMode === "prepaid" ? calculateGatewayCharge(subtotalBeforeGateway) : 0;
   const total = subtotalBeforeGateway + gatewayCharge;
   
-  // For COD: advance is 10% of product total + delivery + COD charge + gateway on (advance + delivery + COD)
+  // For COD: calculate advance payment (10% of product + COD charge + gateway on advance+COD)
   let advance = total;
+  let remainingAmount = 0;
   if (paymentMode === "cod") {
-    const advanceBase = Math.ceil(discountedProduct * 0.1);
-    const advanceDelivery = delivery; // Include delivery charges
-    const advanceCod = COD_CHARGE; // Include COD charge
-    const advanceGateway = calculateGatewayCharge(advanceBase + advanceDelivery + advanceCod); // 3% on advance + delivery + COD
-    advance = advanceBase + advanceDelivery + advanceCod + advanceGateway;
+    const advanceBase = Math.ceil(discountedProduct * 0.10);
+    const advanceCod = codCharge;
+    const advanceGateway = Math.ceil((advanceBase + advanceCod) * 0.03);
+    advance = advanceBase + advanceCod + advanceGateway;
+    // Remaining amount = product subtotal - advance (only product price, not including service charges)
+    remainingAmount = discountedProduct - advanceBase;
   }
   
   return {
@@ -42,5 +44,6 @@ export function calculateOrderTotals(
     gatewayCharge,
     total,
     advance,
+    remainingAmount,
   };
 }

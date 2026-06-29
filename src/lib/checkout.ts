@@ -28,20 +28,16 @@ export function calculateOrderTotals(
   const gatewayCharge = paymentMode === "prepaid" ? calculateGatewayCharge(subtotalBeforeGateway) : 0;
   const total = subtotalBeforeGateway + gatewayCharge;
   
-  // For COD: calculate advance payment (10% + delivery + COD charge + gateway on advance+delivery+COD)
+  // For COD: calculate advance payment (10% of product + COD charge + gateway on advance+COD)
   let advance = total;
-  if (paymentMode === "cod") {
-    const advanceBase = Math.ceil(discountedProduct * 0.10);
-    const advanceDelivery = delivery;
-    const advanceCod = codCharge;
-    const advanceGateway = Math.ceil((advanceBase + advanceDelivery + advanceCod) * 0.03);
-    advance = advanceBase + advanceDelivery + advanceCod + advanceGateway;
-  }
-  
-  // Calculate remaining amount for COD (product + delivery - advance, service charges don't reduce remaining)
   let remainingAmount = 0;
   if (paymentMode === "cod") {
-    remainingAmount = (discountedProduct + delivery) - Math.ceil(discountedProduct * 0.10);
+    const advanceBase = Math.ceil(discountedProduct * 0.10);
+    const advanceCod = codCharge;
+    const advanceGateway = Math.ceil((advanceBase + advanceCod) * 0.03);
+    advance = advanceBase + advanceCod + advanceGateway;
+    // Remaining amount = product subtotal - advance (only product price, not including service charges)
+    remainingAmount = discountedProduct - advanceBase;
   }
 
   return { productTotal, delivery, gatewayCharge, codCharge, couponDiscount, total, advance, remainingAmount };

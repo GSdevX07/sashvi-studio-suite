@@ -34,10 +34,20 @@ paymentsRouter.post("/razorpay/create", requireAuth as any, async (req: AuthedRe
   if (error || !order) return res.status(404).json({ error: "order not found" });
 
   // Use total_paid_online for COD advance, total_amount for full payment
-  const amount = amountType === "advance" 
+  const amount = amountType === "advance"
     ? Number(order.total_paid_online || order.total_amount)
     : Number(order.total_amount);
   const amountPaise = Math.round(amount * 100);
+
+  console.log('Razorpay payment creation debug:', {
+    orderId,
+    amountType,
+    orderTotal: order.total_amount,
+    orderTotalPaidOnline: order.total_paid_online,
+    calculatedAmount: amount,
+    amountPaise,
+    paymentType: order.payment_type
+  });
 
   try {
     const razor = getRazorpay();

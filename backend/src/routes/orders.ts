@@ -92,7 +92,10 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     });
   }
 
+  // Use the price sent from frontend (already discounted if applicable)
   const productTotal = items.reduce((s: number, it: any) => s + it.price * it.qty, 0);
+  // Don't apply product discounts again since frontend already sends discounted price
+  // Only apply coupon discounts
   let couponDiscount = 0;
   let appliedCouponCode: string | null = null;
 
@@ -126,6 +129,14 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   const mode = paymentMode === "cod" ? "cod" : "prepaid";
   const totals = calculateOrderTotals(productTotal, mode, couponDiscount);
 
+  console.log('Order calculation debug:', {
+    productTotal,
+    paymentMode,
+    couponDiscount,
+    totals,
+    deliveryThreshold: 1000
+  });
+
   const orderId = generateOrderId();
 
   // Parse address into parts (best effort — full address goes into address field)
@@ -143,14 +154,14 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   let remainingAmount = 0;
 
   if (paymentMode === "cod") {
-    advancePaid = Math.ceil(productTotal * 0.10);
-    deliveryForAdvance = totals.delivery;
-    codForAdvance = totals.codCharge;
-    gatewayForAdvance = Math.ceil((advancePaid + deliveryForAdvance + codForAdvance) * 0.03);
-    totalPaidOnline = advancePaid + deliveryForAdvance + codForAdvance + gatewayForAdvance;
-    // Remaining amount = (product + delivery) - advance payment (service charges don't reduce remaining)
     const discountedProduct = Math.max(0, productTotal - couponDiscount);
-    remainingAmount = (discountedProduct + totals.delivery) - advancePaid;
+    advancePaid = Math.ceil(discountedProduct * 0.10);
+    deliveryForAdvance = 0; // Don't include delivery in advance
+    codForAdvance = totals.codCharge;
+    gatewayForAdvance = Math.ceil((advancePaid + codForAdvance) * 0.03);
+    totalPaidOnline = advancePaid + codForAdvance + gatewayForAdvance;
+    // Remaining amount = product subtotal - advance (only product price, not including service charges)
+    remainingAmount = discountedProduct - advancePaid;
   } else {
     advancePaid = totals.total;
     totalPaidOnline = totals.total;
@@ -271,7 +282,7 @@ ordersRouter.get("/", requireAuth as any, async (req: AuthedRequest, res) => {
     .from("orders")
     .select("*, order_items(*)")
     .eq("user_id", req.user.id)
-    .not("payment_status", "in", "(failed,pending)")
+    .not("payment_status", "in", "(failed,pending,cancelled)")
     .order("created_at", { ascending: false });
   if (error) {
     console.error("List user orders database error:", error);
@@ -311,7 +322,7 @@ ordersRouter.get("/admin/all", requireAuth as any, async (req: AuthedRequest, re
   const { data: orders, error } = await supabase
     .from("orders")
     .select("*, order_items(*)")
-    .not("payment_status", "in", "(failed,pending)")
+    .not("payment_status", "in", "(failed,pending,cancelled)")
     .order("created_at", { ascending: false });
   if (error) {
     console.error("List all orders database error:", error);
@@ -351,8 +362,8 @@ ordersRouter.get("/:id", requireAuth as any, async (req: AuthedRequest, res) => 
     return res.status(404).json({ error: "not_found" });
   }
 
-  // Hide failed and pending payment orders
-  if (order.payment_status === "failed" || order.payment_status === "pending") {
+  // Hide failed, pending, and cancelled payment orders
+  if (order.payment_status === "failed" || order.payment_status === "pending" || order.payment_status === "cancelled") {
     return res.status(404).json({ error: "not_found" });
   }
 

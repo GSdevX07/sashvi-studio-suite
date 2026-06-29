@@ -605,7 +605,7 @@ function CheckoutPage() {
                   </div>
                   <div className="flex justify-between">
                     <dt>Gateway Charges</dt>
-                    <dd>{formatINR(Math.ceil((Math.ceil(effectiveSubtotal * 0.1) + delivery + codCharge) * 0.03))}</dd>
+                    <dd>{formatINR(Math.ceil((Math.ceil(effectiveSubtotal * 0.1) + codCharge) * 0.03))}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt>Advance Payment (COD)</dt>
