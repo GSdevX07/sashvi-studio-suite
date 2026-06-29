@@ -367,10 +367,15 @@ function MyAccountPage() {
   }, [isLoggedIn, ordersVersion]);
 
   useEffect(() => {
-    if (!isLoggedIn || !userProfile?.id) return;
-    let unsub: (() => void) | undefined;
-    import("@/lib/realtime").then(({ subscribeOrderStatus }) => {
-      unsub = subscribeOrderStatus(userProfile.id, (payload) => {
+    let unsubscribe: (() => void) | undefined;
+
+    async function init() {
+      if (typeof window === "undefined") return;
+      if (!isLoggedIn || !userProfile?.id) return;
+
+      const { subscribeOrderStatus } = await import("@/lib/realtime");
+
+      unsubscribe = subscribeOrderStatus(userProfile.id, (payload) => {
         setOrders((prev) =>
           prev.map((o) =>
             o.order_id === payload.order_id ? { ...o, order_status: payload.new_status } : o,
@@ -380,10 +385,13 @@ function MyAccountPage() {
           fetchOrderDetails(selectedOrder.id);
         }
       });
-      realtimeUnsubRef.current = unsub;
-    });
+      realtimeUnsubRef.current = unsubscribe;
+    }
+
+    init();
+
     return () => {
-      unsub?.();
+      if (unsubscribe) unsubscribe();
       realtimeUnsubRef.current = null;
     };
   }, [isLoggedIn, userProfile?.id, selectedOrder?.id, selectedOrder?.order_id]);
