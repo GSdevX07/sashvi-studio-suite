@@ -130,15 +130,14 @@ function CheckoutPage() {
   );
 
   const couponDiscount = appliedCoupon?.discount ?? 0;
-  // When coupon is applied, use original price; otherwise use effective price
-  const basePrice = couponDiscount > 0 ? listSubtotal : effectiveSubtotal;
+  // Always use original price as base, coupon discount is applied on top
   const { delivery, gatewayCharge, codCharge, total, advance, remainingAmount } = calculateOrderTotals(
-    basePrice,
+    listSubtotal,
     paymentMode,
     couponDiscount,
   );
   const advancePayment = paymentMode === "cod" ? advance : total;
-  const amountForFreeDelivery = Math.max(0, DELIVERY_THRESHOLD - effectiveSubtotal);
+  const amountForFreeDelivery = Math.max(0, DELIVERY_THRESHOLD - listSubtotal);
 
   async function handleApplyCoupon() {
     setCouponError(null);
@@ -254,10 +253,10 @@ function CheckoutPage() {
           category: "",
           color: item.cartItem.selected_color,
           qty: item.cartItem.qty,
-          price: item.effectivePrice, // Send effective price (after product discount)
+          price: item.listPrice, // Send original price
           discountType: item.cartItem.discountType,
           discountValue: item.cartItem.discountValue,
-          discount: item.listPrice - item.effectivePrice, // Send product discount amount
+          discount: item.listPrice - item.effectivePrice, // Send product discount amount for reference
         })),
         shipping: { name, email, phone, address },
         paymentMode,

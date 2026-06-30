@@ -93,10 +93,10 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     });
   }
 
-  // Calculate product total from original prices (before any discount)
-  const originalProductTotal = items.reduce((s: number, it: any) => s + (it.price + (it.discount || 0)) * it.qty, 0);
+  // Calculate product total from original prices
+  const productTotal = items.reduce((s: number, it: any) => s + it.price * it.qty, 0);
 
-  // Apply coupon discount on original price (replaces product discount)
+  // Apply coupon discount on original price
   let couponDiscount = 0;
   let appliedCouponCode: string | null = null;
 
@@ -116,7 +116,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     if (coupon.usage_limit > 0 && coupon.usage_count >= coupon.usage_limit) {
       return res.status(400).json({ error: "coupon_limit_reached" });
     }
-    couponDiscount = calcDiscount(coupon, originalProductTotal);
+    couponDiscount = calcDiscount(coupon, productTotal);
     if (couponDiscount <= 0) {
       return res.status(400).json({ error: "minimum_not_met" });
     }
@@ -128,10 +128,10 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   }
 
   const mode = paymentMode === "cod" ? "cod" : "prepaid";
-  const totals = calculateOrderTotals(originalProductTotal, mode, couponDiscount);
+  const totals = calculateOrderTotals(productTotal, mode, couponDiscount);
 
   console.log('Order calculation debug:', {
-    originalProductTotal,
+    productTotal,
     paymentMode,
     couponDiscount,
     totals,
@@ -155,7 +155,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   let remainingAmount = 0;
 
   if (paymentMode === "cod") {
-    const discountedProduct = Math.max(0, originalProductTotal - couponDiscount);
+    const discountedProduct = Math.max(0, productTotal - couponDiscount);
     advancePaid = Math.ceil(discountedProduct * 0.10);
     deliveryForAdvance = 0; // Don't include delivery in advance
     codForAdvance = totals.codCharge;

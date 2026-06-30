@@ -83,13 +83,8 @@ function CartPage() {
     (sum, item) => sum + getCartItemListPrice(item) * item.qty,
     0,
   );
-  const effectiveSubtotal = items.reduce(
-    (sum, item) => sum + getCartItemEffectivePrice(item) * item.qty,
-    0,
-  );
-  const productDiscount = listSubtotal - effectiveSubtotal;
-  const shipping = calculateDelivery(effectiveSubtotal);
-  const grandTotal = effectiveSubtotal + shipping;
+  const shipping = calculateDelivery(listSubtotal);
+  const grandTotal = listSubtotal + shipping;
 
   async function handleApplyDiscount(itemId: string) {
     setApplyingDiscountId(itemId);
@@ -321,12 +316,6 @@ function CartPage() {
               <dt className="text-muted-foreground">Subtotal</dt>
               <dd>{formatINR(listSubtotal)}</dd>
             </div>
-            {productDiscount > 0 && (
-              <div className="flex justify-between text-accent">
-                <dt>Product Discount</dt>
-                <dd>-{formatINR(productDiscount)}</dd>
-              </div>
-            )}
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Shipping</dt>
               <dd>{shipping === 0 ? "Free" : formatINR(shipping)}</dd>
@@ -338,8 +327,8 @@ function CartPage() {
             </div>
           </dl>
           <div className="mt-4 text-xs text-muted-foreground">
-            {effectiveSubtotal < DELIVERY_THRESHOLD
-              ? `Add ${formatINR(DELIVERY_THRESHOLD - effectiveSubtotal)} more for Free Delivery`
+            {listSubtotal < DELIVERY_THRESHOLD
+              ? `Add ${formatINR(DELIVERY_THRESHOLD - listSubtotal)} more for Free Delivery`
               : "Your order qualifies for free delivery."}
           </div>
           <Link
