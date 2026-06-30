@@ -39,7 +39,7 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
     addItem({
       id: product.id,
       name: product.name,
-      price: salePrice,
+      price: product.price,
       image: product.image,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
