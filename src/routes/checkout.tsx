@@ -130,9 +130,10 @@ function CheckoutPage() {
   );
 
   const couponDiscount = appliedCoupon?.discount ?? 0;
-  // Only use product discount for display calculation, coupon discount is applied by backend
+  // When coupon is applied, use original price; otherwise use effective price
+  const basePrice = couponDiscount > 0 ? listSubtotal : effectiveSubtotal;
   const { delivery, gatewayCharge, codCharge, total, advance, remainingAmount } = calculateOrderTotals(
-    effectiveSubtotal,
+    basePrice,
     paymentMode,
     couponDiscount,
   );
