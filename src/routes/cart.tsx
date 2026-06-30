@@ -37,8 +37,16 @@ function CartPage() {
   } = useCart();
   const navigate = useNavigate();
   const [productStock, setProductStock] = useState<Record<string, number>>({});
-  const [applyingDiscountId, setApplyingDiscountId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Auto-apply discounts for items that have them
+  useEffect(() => {
+    items.forEach((item) => {
+      if (cartItemHasDiscount(item) && !item.discountApplied) {
+        applyItemDiscount(item.id);
+      }
+    });
+  }, [items, applyItemDiscount]);
 
   // Auto-refresh cart when cart items change (not when products change globally)
   // Cart items are refreshed by CartContext's internal logic when needed
@@ -90,19 +98,6 @@ function CartPage() {
   const productDiscount = listSubtotal - effectiveSubtotal;
   const shipping = calculateDelivery(effectiveSubtotal);
   const grandTotal = effectiveSubtotal + shipping;
-
-  async function handleApplyDiscount(itemId: string) {
-    setApplyingDiscountId(itemId);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      applyItemDiscount(itemId);
-      setShowConfetti(true);
-    } catch (err) {
-      console.error("Error applying discount:", err);
-    } finally {
-      setApplyingDiscountId(null);
-    }
-  }
 
   if (!isLoggedIn) {
     return (
@@ -266,20 +261,6 @@ function CartPage() {
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Remove
                   </button>
-                  {hasDiscount && !item.discountApplied ? (
-                    <button
-                      onClick={() => handleApplyDiscount(item.id)}
-                      disabled={applyingDiscountId === item.id}
-                      className="ml-auto rounded-full bg-accent px-4 py-2 text-xs font-medium uppercase tracking-widest text-accent-foreground transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {applyingDiscountId === item.id ? "Applying..." : "Apply Discount"}
-                    </button>
-                  ) : null}
-                  {hasDiscount && item.discountApplied ? (
-                    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-accent/15 px-4 py-2 text-xs font-medium text-accent">
-                      <Check className="h-3.5 w-3.5" /> Discount Applied
-                    </span>
-                  ) : null}
                 </div>
               </div>
             );
