@@ -297,10 +297,10 @@ function CheckoutPage() {
           category: "",
           color: item.cartItem.selected_color,
           qty: item.cartItem.qty,
-          price: item.effectivePrice,
+          price: item.listPrice, // Send original price to backend
           discountType: item.cartItem.discountType,
           discountValue: item.cartItem.discountValue,
-          discount: item.listPrice - item.effectivePrice,
+          discount: item.listPrice - item.effectivePrice, // Send product discount amount
         })),
         shipping: { name, email, phone, address },
         paymentMode,

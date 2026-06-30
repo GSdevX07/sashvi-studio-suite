@@ -93,10 +93,12 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     });
   }
 
-  // Use the price sent from frontend (already discounted if applicable)
+  // Calculate product total from original prices
   const productTotal = items.reduce((s: number, it: any) => s + it.price * it.qty, 0);
-  // Don't apply product discounts again since frontend already sends discounted price
-  // Only apply coupon discounts
+  // Calculate total product discount from items
+  const totalProductDiscount = items.reduce((s: number, it: any) => s + (it.discount || 0) * it.qty, 0);
+
+  // Apply coupon discount on original price (before product discount)
   let couponDiscount = 0;
   let appliedCouponCode: string | null = null;
 
@@ -128,7 +130,8 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   }
 
   const mode = paymentMode === "cod" ? "cod" : "prepaid";
-  const totals = calculateOrderTotals(productTotal, mode, couponDiscount);
+  const totalDiscount = totalProductDiscount + couponDiscount;
+  const totals = calculateOrderTotals(productTotal, mode, totalDiscount);
 
   console.log('Order calculation debug:', {
     productTotal,
