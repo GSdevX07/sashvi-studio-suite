@@ -19,7 +19,7 @@ import { BRAND, waLink } from "@/lib/contact";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { toast } from "sonner";
-import { apiJson } from "@/lib/backend";
+import { apiJson, getAuthToken } from "@/lib/backend";
 import { useRealtime } from "@/lib/realtime-context";
 import { getPremiumDiscountBadge, hasProductDiscount, normalizeDiscountFields } from "@/lib/discount";
 
@@ -161,7 +161,7 @@ function ProductPage() {
     if (!product) return;
 
     // Check if user is logged in
-    const token = localStorage.getItem("sashvi_customer_token");
+    const token = getAuthToken();
     if (!token) {
       toast.error("Please login to submit a review");
       return;
