@@ -123,12 +123,23 @@ export async function reduceStockForOrderItems(
 
 /**
  * Restore product stock when an order is cancelled.
+ * Accepts either internal UUID or display order_id.
  */
-export async function restoreStockForOrder(orderInternalId: string): Promise<void> {
+export async function restoreStockForOrder(orderId: string): Promise<void> {
+  // First, find the order to get the display order_id
+  const { data: order } = await supabase
+    .from("orders")
+    .select("id, order_id")
+    .or(`id.eq.${orderId},order_id.eq.${orderId}`)
+    .maybeSingle();
+
+  if (!order) return;
+
+  // Use the display order_id to query order_items
   const { data: items } = await supabase
     .from("order_items")
     .select("product_id, variant_id, quantity")
-    .eq("order_id", orderInternalId);
+    .eq("order_id", order.order_id);
 
   if (!items?.length) return;
 
