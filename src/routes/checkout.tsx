@@ -130,10 +130,11 @@ function CheckoutPage() {
   );
 
   const couponDiscount = appliedCoupon?.discount ?? 0;
+  // Only use product discount for display calculation, coupon discount is applied by backend
   const { delivery, gatewayCharge, codCharge, total, advance, remainingAmount } = calculateOrderTotals(
-    listSubtotal,
+    effectiveSubtotal,
     paymentMode,
-    productDiscount + couponDiscount,
+    couponDiscount,
   );
   const advancePayment = paymentMode === "cod" ? advance : total;
   const amountForFreeDelivery = Math.max(0, DELIVERY_THRESHOLD - effectiveSubtotal);
@@ -252,7 +253,7 @@ function CheckoutPage() {
           category: "",
           color: item.cartItem.selected_color,
           qty: item.cartItem.qty,
-          price: item.listPrice, // Send original price to backend
+          price: item.effectivePrice, // Send effective price (after product discount)
           discountType: item.cartItem.discountType,
           discountValue: item.cartItem.discountValue,
           discount: item.listPrice - item.effectivePrice, // Send product discount amount

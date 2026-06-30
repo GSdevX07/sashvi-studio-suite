@@ -93,12 +93,10 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     });
   }
 
-  // Calculate product total from original prices
+  // Calculate product total from effective prices (after product discount)
   const productTotal = items.reduce((s: number, it: any) => s + it.price * it.qty, 0);
-  // Calculate total product discount from items
-  const totalProductDiscount = items.reduce((s: number, it: any) => s + (it.discount || 0) * it.qty, 0);
 
-  // Apply coupon discount on original price (before product discount)
+  // Apply coupon discount on effective price (after product discount)
   let couponDiscount = 0;
   let appliedCouponCode: string | null = null;
 
@@ -130,8 +128,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   }
 
   const mode = paymentMode === "cod" ? "cod" : "prepaid";
-  const totalDiscount = totalProductDiscount + couponDiscount;
-  const totals = calculateOrderTotals(productTotal, mode, totalDiscount);
+  const totals = calculateOrderTotals(productTotal, mode, couponDiscount);
 
   console.log('Order calculation debug:', {
     productTotal,
