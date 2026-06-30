@@ -17,14 +17,17 @@ export async function validateAndReserveStock(
 
     // If variant_id is provided, check and reserve variant stock
     if (variantId) {
-      const { data: variant } = await supabase
-        .from("product_variants")
-        .select("stock, color")
-        .eq("id", variantId)
-        .eq("product_id", productId)
-        .maybeSingle();
+      // Use RPC with row-level locking to prevent race conditions
+      const { data: variant, error: variantError } = await supabase.rpc(
+        "reserve_variant_stock",
+        {
+          p_variant_id: variantId,
+          p_product_id: productId,
+          p_qty: qty,
+        }
+      );
 
-      if (!variant) {
+      if (variantError || !variant) {
         insufficientItems.push({ productId, variantId, requested: qty, available: 0 });
         continue;
       }
@@ -37,20 +40,22 @@ export async function validateAndReserveStock(
           requested: qty,
           available: current,
         });
-      } else {
-        // Reserve stock by reducing it immediately
-        const newStock = current - qty;
-        await supabase.from("product_variants").update({ stock: newStock }).eq("id", variantId);
       }
     } else {
       // Fallback to main product stock if no variant
-      const { data: product } = await supabase
-        .from("products")
-        .select("stock, name")
-        .eq("id", productId)
-        .maybeSingle();
+      // Use RPC with row-level locking to prevent race conditions
+      const { data: product, error: productError } = await supabase.rpc(
+        "reserve_product_stock",
+        {
+          p_product_id: productId,
+          p_qty: qty,
+        }
+      );
 
-      if (!product) continue;
+      if (productError || !product) {
+        insufficientItems.push({ productId, requested: qty, available: 0 });
+        continue;
+      }
 
       const current = Number(product.stock ?? 0);
       if (qty > current) {
@@ -59,10 +64,6 @@ export async function validateAndReserveStock(
           requested: qty,
           available: current,
         });
-      } else {
-        // Reserve stock by reducing it immediately
-        const newStock = current - qty;
-        await supabase.from("products").update({ stock: newStock }).eq("id", productId);
       }
     }
   }
