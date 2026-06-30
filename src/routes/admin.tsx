@@ -3338,10 +3338,11 @@ function Admin() {
           </div>
           <div>
             <label className={FL}>Caption (optional)</label>
-            <input
+            <textarea
               value={igForm.caption}
               onChange={(e) => setIgForm((f) => ({ ...f, caption: e.target.value }))}
               className={FI}
+              rows={3}
               placeholder="e.g. Festive collection drop!"
             />
           </div>

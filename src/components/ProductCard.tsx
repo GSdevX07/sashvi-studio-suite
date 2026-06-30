@@ -67,7 +67,7 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
             src={product.image}
             alt={product.name}
             loading="lazy"
-            className={`h-full w-full object-cover transition duration-[1200ms] ease-out group-hover:scale-[1.04] ${isOutOfStock ? "grayscale opacity-60" : ""}`}
+            className="h-full w-full object-cover transition duration-[1200ms] ease-out group-hover:scale-[1.04]"
           />
           {isOutOfStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">

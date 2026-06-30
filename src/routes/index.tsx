@@ -379,6 +379,15 @@ function Home() {
         </div>
       </section>
 
+      {/* Free Shipping Banner */}
+      <section className="container-luxe py-6 sm:py-8">
+        <div className="rounded-2xl bg-accent/10 border border-accent/20 p-4 sm:p-6 text-center">
+          <p className="text-sm sm:text-base font-medium" style={{ color: '#4A2B24' }}>
+            Free shipping on orders above ₹1000
+          </p>
+        </div>
+      </section>
+
       {/* SHOP BY CATEGORY */}
       <section className="container-luxe py-8 sm:py-12">
         <SectionHeading eyebrow="Curated Worlds" title="Shop By Category" />
