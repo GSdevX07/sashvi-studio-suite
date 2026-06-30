@@ -33,62 +33,77 @@ reviewsRouter.get("/", requireAdmin as any, async (_req, res) => {
 
 // Get reviews for a specific product (public)
 reviewsRouter.get("/product/:productId", async (req, res) => {
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("id, user_name, product_id, rating, review_text, verified, featured, created_at")
-    .eq("product_id", req.params.productId)
-    .eq("verified", true)
-    .order("created_at", { ascending: false });
-  if (error) return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
-  res.setHeader("Cache-Control", "no-store");
-  return res.json({ reviews: data ?? [] });
+  try {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("id, user_name, product_id, rating, review_text, verified, featured, created_at")
+      .eq("product_id", req.params.productId)
+      .eq("verified", true)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Reviews GET error:", error);
+      return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
+    }
+    res.setHeader("Cache-Control", "no-store");
+    return res.json({ reviews: data ?? [] });
+  } catch (err) {
+    console.error("Reviews GET unexpected error:", err);
+    return res.status(500).json({ error: "server_error", detail: String(err) });
+  }
 });
 
 // Create a review (authenticated users only)
 reviewsRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
-  const { product_id, rating, review_text } = req.body;
+  try {
+    const { product_id, rating, review_text } = req.body;
 
-  if (!product_id || !rating || !review_text) {
-    return res.status(400).json({ error: "missing_fields" });
-  }
-
-  if (rating < 1 || rating > 5) {
-    return res.status(400).json({ error: "invalid_rating" });
-  }
-
-  // Get user name from users table
-  const { data: userData, error: userError } = await supabase
-    .from("users")
-    .select("name")
-    .eq("id", req.user.id)
-    .single();
-
-  if (userError || !userData) {
-    return res.status(400).json({ error: "user_not_found" });
-  }
-
-  const { data, error } = await supabase
-    .from("reviews")
-    .insert({
-      product_id,
-      user_id: req.user.id,
-      user_name: userData.name || "Customer",
-      rating,
-      review_text,
-      verified: false, // Reviews need admin approval
-    })
-    .select()
-    .single();
-
-  if (error) {
-    // Check if it's a unique constraint violation (user already reviewed this product)
-    if (error.code === "23505") {
-      return res.status(400).json({ error: "already_reviewed" });
+    if (!product_id || !rating || !review_text) {
+      return res.status(400).json({ error: "missing_fields" });
     }
-    return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
-  }
 
-  return res.json({ review: mapReview(data as Record<string, unknown>) });
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "invalid_rating" });
+    }
+
+    // Get user name from users table
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("name")
+      .eq("id", req.user.id)
+      .single();
+
+    if (userError || !userData) {
+      console.error("Review POST user error:", userError);
+      return res.status(400).json({ error: "user_not_found" });
+    }
+
+    const { data, error } = await supabase
+      .from("reviews")
+      .insert({
+        product_id,
+        user_id: req.user.id,
+        user_name: userData.name || "Customer",
+        rating,
+        review_text,
+        verified: false, // Reviews need admin approval
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Review POST insert error:", error);
+      // Check if it's a unique constraint violation (user already reviewed this product)
+      if (error.code === "23505") {
+        return res.status(400).json({ error: "already_reviewed" });
+      }
+      return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
+    }
+
+    return res.json({ review: mapReview(data as Record<string, unknown>) });
+  } catch (err) {
+    console.error("Review POST unexpected error:", err);
+    return res.status(500).json({ error: "server_error", detail: String(err) });
+  }
 });
 
 // Update review status (admin only)
