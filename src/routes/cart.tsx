@@ -83,8 +83,13 @@ function CartPage() {
     (sum, item) => sum + getCartItemListPrice(item) * item.qty,
     0,
   );
-  const shipping = calculateDelivery(listSubtotal);
-  const grandTotal = listSubtotal + shipping;
+  const effectiveSubtotal = items.reduce(
+    (sum, item) => sum + getCartItemEffectivePrice(item) * item.qty,
+    0,
+  );
+  const productDiscount = listSubtotal - effectiveSubtotal;
+  const shipping = calculateDelivery(effectiveSubtotal);
+  const grandTotal = effectiveSubtotal + shipping;
 
   async function handleApplyDiscount(itemId: string) {
     setApplyingDiscountId(itemId);
@@ -261,6 +266,20 @@ function CartPage() {
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Remove
                   </button>
+                  {hasDiscount && !item.discountApplied ? (
+                    <button
+                      onClick={() => handleApplyDiscount(item.id)}
+                      disabled={applyingDiscountId === item.id}
+                      className="ml-auto rounded-full bg-accent px-4 py-2 text-xs font-medium uppercase tracking-widest text-accent-foreground transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {applyingDiscountId === item.id ? "Applying..." : "Apply Discount"}
+                    </button>
+                  ) : null}
+                  {hasDiscount && item.discountApplied ? (
+                    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-accent/15 px-4 py-2 text-xs font-medium text-accent">
+                      <Check className="h-3.5 w-3.5" /> Discount Applied
+                    </span>
+                  ) : null}
                 </div>
               </div>
             );
@@ -274,6 +293,12 @@ function CartPage() {
               <dt className="text-muted-foreground">Subtotal</dt>
               <dd>{formatINR(listSubtotal)}</dd>
             </div>
+            {productDiscount > 0 && (
+              <div className="flex justify-between text-accent">
+                <dt>Product Discount</dt>
+                <dd>-{formatINR(productDiscount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Shipping</dt>
               <dd>{shipping === 0 ? "Free" : formatINR(shipping)}</dd>
@@ -285,8 +310,8 @@ function CartPage() {
             </div>
           </dl>
           <div className="mt-4 text-xs text-muted-foreground">
-            {listSubtotal < DELIVERY_THRESHOLD
-              ? `Add ${formatINR(DELIVERY_THRESHOLD - listSubtotal)} more for Free Delivery`
+            {effectiveSubtotal < DELIVERY_THRESHOLD
+              ? `Add ${formatINR(DELIVERY_THRESHOLD - effectiveSubtotal)} more for Free Delivery`
               : "Your order qualifies for free delivery."}
           </div>
           <Link
