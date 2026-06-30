@@ -131,9 +131,9 @@ function CheckoutPage() {
 
   const couponDiscount = appliedCoupon?.discount ?? 0;
   const { delivery, gatewayCharge, codCharge, total, advance, remainingAmount } = calculateOrderTotals(
-    effectiveSubtotal,
+    listSubtotal,
     paymentMode,
-    couponDiscount,
+    productDiscount + couponDiscount,
   );
   const advancePayment = paymentMode === "cod" ? advance : total;
   const amountForFreeDelivery = Math.max(0, DELIVERY_THRESHOLD - effectiveSubtotal);
@@ -147,7 +147,7 @@ function CheckoutPage() {
         "/coupons/validate",
         {
           method: "POST",
-          body: JSON.stringify({ code: couponCode.trim(), subtotal: effectiveSubtotal }),
+          body: JSON.stringify({ code: couponCode.trim(), subtotal: listSubtotal }),
         },
         true,
       );

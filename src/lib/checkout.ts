@@ -27,7 +27,7 @@ export function calculateOrderTotals(
   const subtotalBeforeGateway = discountedProduct + delivery + codCharge;
   const gatewayCharge = 0; // No gateway charge
   const total = subtotalBeforeGateway + gatewayCharge;
-  
+
   // For COD: calculate advance payment (10% of product + COD charge, no gateway charge)
   let advance = total;
   let remainingAmount = 0;
