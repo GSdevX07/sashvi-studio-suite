@@ -130,14 +130,15 @@ function CheckoutPage() {
   );
 
   const couponDiscount = appliedCoupon?.discount ?? 0;
-  // Always use original price as base, coupon discount is applied on top
+  // If coupon is applied, use original price; otherwise use effective price (with product discount)
+  const basePrice = couponDiscount > 0 ? listSubtotal : effectiveSubtotal;
   const { delivery, gatewayCharge, codCharge, total, advance, remainingAmount } = calculateOrderTotals(
-    listSubtotal,
+    basePrice,
     paymentMode,
     couponDiscount,
   );
   const advancePayment = paymentMode === "cod" ? advance : total;
-  const amountForFreeDelivery = Math.max(0, DELIVERY_THRESHOLD - listSubtotal);
+  const amountForFreeDelivery = Math.max(0, DELIVERY_THRESHOLD - basePrice);
 
   async function handleApplyCoupon() {
     setCouponError(null);
