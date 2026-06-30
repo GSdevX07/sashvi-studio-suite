@@ -240,40 +240,12 @@ function CartPage() {
                     )}
                   </div>
                   <div className="hidden sm:block text-right">
-                    {item.discountApplied && hasDiscount ? (
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-sm text-muted-foreground line-through">
-                          {formatINR(lineListTotal)}
-                        </span>
-                        <div className="font-medium text-foreground">
-                          {formatINR(lineEffectiveTotal)}
-                        </div>
-                        {discountLabel ? (
-                          <span className="text-xs text-accent">{discountLabel}</span>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <div className="font-medium text-foreground">{formatINR(lineListTotal)}</div>
-                    )}
+                    <div className="font-medium text-foreground">{formatINR(lineListTotal)}</div>
                   </div>
                 </div>
                 {/* Mobile price display */}
                 <div className="mt-3 sm:hidden flex justify-between items-center">
-                  {item.discountApplied && hasDiscount ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground line-through">
-                        {formatINR(lineListTotal)}
-                      </span>
-                      <div className="font-medium text-foreground">
-                        {formatINR(lineEffectiveTotal)}
-                      </div>
-                      {discountLabel && (
-                        <span className="text-xs text-accent">{discountLabel}</span>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="font-medium text-foreground">{formatINR(lineListTotal)}</div>
-                  )}
+                  <div className="font-medium text-foreground">{formatINR(lineListTotal)}</div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
@@ -289,20 +261,6 @@ function CartPage() {
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Remove
                   </button>
-                  {hasDiscount && !item.discountApplied ? (
-                    <button
-                      onClick={() => handleApplyDiscount(item.id)}
-                      disabled={applyingDiscountId === item.id}
-                      className="ml-auto rounded-full bg-accent px-4 py-2 text-xs font-medium uppercase tracking-widest text-accent-foreground transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {applyingDiscountId === item.id ? "Applying..." : "Apply Discount"}
-                    </button>
-                  ) : null}
-                  {hasDiscount && item.discountApplied ? (
-                    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-accent/15 px-4 py-2 text-xs font-medium text-accent">
-                      <Check className="h-3.5 w-3.5" /> Discount Applied
-                    </span>
-                  ) : null}
                 </div>
               </div>
             );
