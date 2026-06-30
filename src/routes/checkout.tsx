@@ -243,51 +243,6 @@ function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Fetch latest product prices before checkout to prevent price manipulation
-      const catalogRes = await fetch("/backend-api/products/catalog", { cache: "no-store" });
-      
-      if (!catalogRes.ok) {
-        setError("Failed to fetch latest product prices. Please try again.");
-        setLoading(false);
-        return;
-      }
-      
-      const catalogData = await catalogRes.json();
-
-      let priceChanged = false;
-      const validatedItems = items.map((item) => {
-        if (Array.isArray(catalogData.products)) {
-          const latestProduct = catalogData.products.find((p: any) => p.id === item.cartItem.id);
-          if (latestProduct) {
-            // Check if price or discount changed
-            if (latestProduct.price !== item.cartItem.price) {
-              priceChanged = true;
-              return {
-                ...item,
-                cartItem: {
-                  ...item.cartItem,
-                  price: latestProduct.price,
-                  discountType: latestProduct.discountType,
-                  discountValue: latestProduct.discountValue,
-                },
-                listPrice: latestProduct.price,
-                effectivePrice: latestProduct.price, // Recalculate effective price based on new discount
-              };
-            }
-          }
-        }
-        return item;
-      });
-
-      if (priceChanged) {
-        setItems(validatedItems);
-        setError(
-          "Product prices have changed. Please review your order summary before proceeding.",
-        );
-        setLoading(false);
-        return;
-      }
-
       const orderBody = {
         items: items.map((item) => ({
           product_id: item.cartItem.id,
