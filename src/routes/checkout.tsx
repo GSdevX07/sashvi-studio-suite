@@ -378,7 +378,22 @@ function CheckoutPage() {
               },
             });
           } catch (verifyError) {
-            // Payment verification failed
+            // Payment verification failed - restore stock
+            try {
+              await apiJson(
+                "/payments/razorpay/verify",
+                {
+                  method: "POST",
+                  body: JSON.stringify({
+                    failed: true,
+                    orderId: orderResponse.order.id,
+                  }),
+                },
+                true,
+              );
+            } catch (err) {
+              console.error("Failed to restore stock on verification failure:", err);
+            }
             navigate({
               to: "/payment-failed",
               search: {
@@ -393,7 +408,23 @@ function CheckoutPage() {
         },
         modal: {
           escape: true,
-          ondismiss: () => {
+          ondismiss: async () => {
+            // Restore stock when payment is cancelled
+            try {
+              await apiJson(
+                "/payments/razorpay/verify",
+                {
+                  method: "POST",
+                  body: JSON.stringify({
+                    failed: true,
+                    orderId: orderResponse.order.id,
+                  }),
+                },
+                true,
+              );
+            } catch (err) {
+              console.error("Failed to restore stock on cancellation:", err);
+            }
             navigate({
               to: "/payment-failed",
               search: {
