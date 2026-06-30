@@ -96,7 +96,14 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   // Calculate product total from original prices
   const productTotal = items.reduce((s: number, it: any) => s + it.price * it.qty, 0);
 
-  // Apply coupon discount on original price
+  // Calculate effective product total after product discounts
+  const effectiveProductTotal = items.reduce((s: number, it: any) => {
+    const discount = it.discount || 0;
+    const effectivePrice = it.price - discount;
+    return s + effectivePrice * it.qty;
+  }, 0);
+
+  // Apply coupon discount on effective price (after product discount)
   let couponDiscount = 0;
   let appliedCouponCode: string | null = null;
 
@@ -116,7 +123,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     if (coupon.usage_limit > 0 && coupon.usage_count >= coupon.usage_limit) {
       return res.status(400).json({ error: "coupon_limit_reached" });
     }
-    couponDiscount = calcDiscount(coupon, productTotal);
+    couponDiscount = calcDiscount(coupon, effectiveProductTotal);
     if (couponDiscount <= 0) {
       return res.status(400).json({ error: "minimum_not_met" });
     }
@@ -128,7 +135,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   }
 
   const mode = paymentMode === "cod" ? "cod" : "prepaid";
-  const totals = calculateOrderTotals(productTotal, mode, couponDiscount);
+  const totals = calculateOrderTotals(effectiveProductTotal, mode, couponDiscount);
 
   console.log('Order calculation debug:', {
     productTotal,
@@ -155,7 +162,7 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   let remainingAmount = 0;
 
   if (paymentMode === "cod") {
-    const discountedProduct = Math.max(0, productTotal - couponDiscount);
+    const discountedProduct = Math.max(0, effectiveProductTotal - couponDiscount);
     advancePaid = Math.ceil(discountedProduct * 0.10);
     deliveryForAdvance = 0; // Don't include delivery in advance
     codForAdvance = totals.codCharge;
