@@ -93,6 +93,7 @@ const NAV = [
   { label: "Orders", icon: ShoppingBag },
   { label: "Instagram Feed", icon: Instagram },
   { label: "Coupons", icon: Star },
+  { label: "Reviews", icon: MessageSquare },
   { label: "Inventory", icon: TrendingUp },
 ] as const;
 
@@ -247,14 +248,14 @@ type CustomerAdmin = {
   address: string;
 };
 type ReviewAdmin = {
-  id: number;
-  name: string;
-  product: string;
+  id: string;
+  user_name: string;
+  product_id: string;
   rating: number;
-  comment: string;
-  status: "Pending" | "Approved";
+  review_text: string;
+  verified: boolean;
   featured: boolean;
-  date: string;
+  created_at: string;
 };
 type InstagramLinkedProduct = { name: string; url: string };
 type InstagramFeedItem = {
@@ -1223,7 +1224,7 @@ function Admin() {
     setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, status: "Approved" } : r)));
   }
 
-  async function deleteReview(id: number) {
+  async function deleteReview(id: string) {
     await apiDirect(`reviews/${id}`, { method: "DELETE" });
     setReviews((prev) => prev.filter((r) => r.id !== id));
   }
@@ -1420,8 +1421,8 @@ function Admin() {
     () =>
       reviews.filter(
         (r) =>
-          r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.product.toLowerCase().includes(searchQuery.toLowerCase()),
+          r.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          r.product_id.toLowerCase().includes(searchQuery.toLowerCase()),
       ),
     [reviews, searchQuery],
   );
@@ -2823,6 +2824,67 @@ function Admin() {
                             <button
                               type="button"
                               onClick={() => deleteCoupon(coupon.id)}
+                              className="rounded-full border border-destructive px-3 py-1 text-xs text-destructive hover:bg-destructive/10"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ── REVIEWS ────────────────────────────────────────────── */}
+            {activeSection === "Reviews" && (
+              <div className="space-y-6">
+                <SectionHeader title="Reviews" />
+                <div className="mb-3">
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search reviews…"
+                    className={FI + " max-w-sm"}
+                  />
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-5 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-left text-xs uppercase tracking-widest text-muted-foreground">
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-3">Customer</th>
+                        <th className="px-3 py-3">Product</th>
+                        <th className="px-3 py-3">Rating</th>
+                        <th className="px-3 py-3">Review</th>
+                        <th className="px-3 py-3">Date</th>
+                        <th className="px-3 py-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reviews.map((review) => (
+                        <tr key={review.id} className="border-b border-border/60 last:border-0">
+                          <td className="px-3 py-3 font-medium">{review.user_name}</td>
+                          <td className="px-3 py-3">{review.product_id}</td>
+                          <td className="px-3 py-3">
+                            <div className="flex gap-0.5 text-accent">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3.5 w-3.5 ${i < review.rating ? "fill-current" : ""}`}
+                                />
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 max-w-xs truncate">{review.review_text}</td>
+                          <td className="px-3 py-3 text-xs text-muted-foreground">
+                            {new Date(review.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-3 py-3 flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => deleteReview(review.id)}
                               className="rounded-full border border-destructive px-3 py-1 text-xs text-destructive hover:bg-destructive/10"
                             >
                               Delete

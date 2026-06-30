@@ -78,6 +78,11 @@ function ProductPage() {
   const { productsVersion } = useRealtime();
   const { addItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
+
+  // Reviews state
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, review_text: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
   
   // Call hooks at the top level - no conditional hooks
   const category = fallback?.categories?.[0];
@@ -137,6 +142,66 @@ function ProductPage() {
         setStock(product.stock ?? 999);
       });
   }, [product, productsVersion, selectedColor]);
+
+  // Fetch reviews for the product
+  useEffect(() => {
+    if (!product) return;
+
+    apiJson<{ reviews: any[] }>(`/reviews/product/${product.id}`, {}, false)
+      .then((res) => {
+        setReviews(res.reviews || []);
+      })
+      .catch(() => {
+        setReviews([]);
+      });
+  }, [product]);
+
+  // Submit review
+  const handleSubmitReview = async () => {
+    if (!product) return;
+
+    // Check if user is logged in
+    const token = localStorage.getItem("sashvi_customer_token");
+    if (!token) {
+      toast.error("Please login to submit a review");
+      return;
+    }
+
+    if (!reviewForm.review_text.trim()) {
+      toast.error("Please write a review");
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const res = await apiJson<{ review: any }>(
+        "/reviews",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            product_id: product.id,
+            rating: reviewForm.rating,
+            review_text: reviewForm.review_text,
+          }),
+        },
+        true,
+      );
+
+      if (res.review) {
+        setReviews([res.review, ...reviews]);
+        setReviewForm({ rating: 5, review_text: "" });
+        toast.success("Review submitted successfully");
+      }
+    } catch (err: any) {
+      if (err?.error === "already_reviewed") {
+        toast.error("You have already reviewed this product");
+      } else {
+        toast.error("Failed to submit review");
+      }
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   // Conditional returns AFTER all hooks
   if (loading) {
@@ -424,6 +489,82 @@ function ProductPage() {
               <ProductCard product={p} stock={p.stock} />
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section className="container-luxe pb-20">
+        <h2 className="mb-8 font-display text-2xl md:text-3xl">Customer Reviews</h2>
+
+        {/* Review Submission Form */}
+        <div className="mb-8 rounded-2xl border border-border bg-card p-6">
+          <h3 className="mb-4 font-medium text-lg">Write a Review</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Rating</label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                    className="text-2xl hover:scale-110 transition-transform"
+                  >
+                    <Star
+                      className={`h-6 w-6 ${star <= reviewForm.rating ? "fill-yellow-500 text-yellow-500" : "text-gray-300"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Your Review</label>
+              <textarea
+                value={reviewForm.review_text}
+                onChange={(e) => setReviewForm({ ...reviewForm, review_text: e.target.value })}
+                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+                rows={3}
+                placeholder="Share your experience with this product..."
+              />
+            </div>
+            <button
+              onClick={handleSubmitReview}
+              disabled={submittingReview}
+              className="rounded-full bg-foreground px-6 py-2.5 text-sm font-medium uppercase tracking-widest text-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submittingReview ? "Submitting..." : "Submit Review"}
+            </button>
+          </div>
+        </div>
+
+        {/* Reviews List */}
+        <div className="space-y-4">
+          {reviews.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              No reviews yet. Be the first to review this product!
+            </div>
+          ) : (
+            reviews.map((review) => (
+              <div key={review.id} className="rounded-2xl border border-border bg-card p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="font-medium">{review.user_name}</div>
+                    <div className="flex items-center gap-1 mt-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${i < review.rating ? "fill-yellow-500 text-yellow-500" : "text-gray-300"}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <p className="text-sm text-foreground/80">{review.review_text}</p>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </Layout>
