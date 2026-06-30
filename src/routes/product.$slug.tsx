@@ -243,10 +243,10 @@ function ProductPage() {
             <img
               src={images[activeImg]}
               alt={product.name}
-              className={`aspect-[4/5] w-full object-cover transition duration-700 hover:scale-105 ${stock === 0 ? 'grayscale opacity-60' : ''}`}
+              className="aspect-[4/5] w-full object-cover transition duration-700 hover:scale-105"
             />
             {stock === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                 <span className="rounded-full bg-destructive px-6 py-3 text-lg font-semibold text-destructive-foreground shadow-lg">
                   Out of Stock
                 </span>

@@ -604,10 +604,6 @@ function CheckoutPage() {
                     <dd>{formatINR(codCharge)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt>Gateway Charges</dt>
-                    <dd>{formatINR(Math.ceil((Math.ceil(effectiveSubtotal * 0.1) + codCharge) * 0.03))}</dd>
-                  </div>
-                  <div className="flex justify-between">
                     <dt>Advance Payment (COD)</dt>
                     <dd>{formatINR(Math.ceil(effectiveSubtotal * 0.1))}</dd>
                   </div>
@@ -630,10 +626,6 @@ function CheckoutPage() {
                   <div className="flex justify-between">
                     <dt>Delivery Charges</dt>
                     <dd>{delivery === 0 ? "Free" : formatINR(delivery)}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt>Gateway Charges</dt>
-                    <dd>{formatINR(gatewayCharge)}</dd>
                   </div>
                   <div className="hairline my-3" />
                   <div className="flex justify-between text-base font-medium">

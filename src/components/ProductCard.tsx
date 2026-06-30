@@ -70,7 +70,7 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
             className="h-full w-full object-cover transition duration-[1200ms] ease-out group-hover:scale-[1.04]"
           />
           {isOutOfStock && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
               <span className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground shadow-lg">
                 Out of Stock
               </span>
