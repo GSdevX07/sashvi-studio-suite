@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { calculateOrderTotals } from "../lib/checkout";
 import { sendEmail, buildOrderConfirmationEmail } from "../lib/email";
 import { requireAuth, AuthedRequest } from "../middleware/auth";
-import { reduceStockForOrderItems } from "../lib/inventory";
+import { reduceStockForOrderItems, restoreStockForOrder } from "../lib/inventory";
 
 export const paymentsRouter = express.Router();
 
@@ -75,6 +75,9 @@ paymentsRouter.post("/razorpay/verify", requireAuth as any, async (req: AuthedRe
   // Handle payment failure
   if (failed === true) {
     if (orderId) {
+      // Restore stock that was reserved when order was created
+      await restoreStockForOrder(orderId);
+      
       await supabase
         .from("orders")
         .update({
@@ -123,23 +126,8 @@ paymentsRouter.post("/razorpay/verify", requireAuth as any, async (req: AuthedRe
       .select("*")
       .maybeSingle();
 
-    // Reduce stock after successful payment
-    if (order) {
-      const { data: orderItems } = await supabase
-        .from("order_items")
-        .select("*")
-        .eq("order_id", order.order_id);
-
-      if (orderItems && orderItems.length > 0) {
-        const items = orderItems.map((item: any) => ({
-          product_id: item.product_id,
-          variant_id: item.variant_id,
-          qty: item.quantity,
-        }));
-        await reduceStockForOrderItems(items);
-        console.log("Stock reduced for order:", order.order_id);
-      }
-    }
+    // Note: Stock is already reserved when order was created, so no need to reduce again
+    // Stock will remain reduced. If payment fails, stock is restored.
 
     // Send confirmation email after payment verified
     if (order) {

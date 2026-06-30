@@ -1,9 +1,10 @@
 import { supabase } from "./supabase";
 
 /**
- * Validate stock availability before order placement
+ * Validate and reserve stock availability before order placement
+ * This reserves stock immediately to prevent race conditions during payment
  */
-export async function validateStockAvailability(
+export async function validateAndReserveStock(
   items: Array<{ product_id?: string | null; variant_id?: string | null; qty?: number; quantity?: number }>,
 ): Promise<{ valid: boolean; error?: string; insufficientItems?: Array<{ productId: string; variantId?: string; requested: number; available: number }> }> {
   const insufficientItems: Array<{ productId: string; variantId?: string; requested: number; available: number }> = [];
@@ -14,7 +15,7 @@ export async function validateStockAvailability(
     const qty = Number(item.qty ?? item.quantity ?? 0);
     if (!productId || qty <= 0) continue;
 
-    // If variant_id is provided, check variant stock
+    // If variant_id is provided, check and reserve variant stock
     if (variantId) {
       const { data: variant } = await supabase
         .from("product_variants")
@@ -36,6 +37,10 @@ export async function validateStockAvailability(
           requested: qty,
           available: current,
         });
+      } else {
+        // Reserve stock by reducing it immediately
+        const newStock = current - qty;
+        await supabase.from("product_variants").update({ stock: newStock }).eq("id", variantId);
       }
     } else {
       // Fallback to main product stock if no variant
@@ -54,6 +59,10 @@ export async function validateStockAvailability(
           requested: qty,
           available: current,
         });
+      } else {
+        // Reserve stock by reducing it immediately
+        const newStock = current - qty;
+        await supabase.from("products").update({ stock: newStock }).eq("id", productId);
       }
     }
   }

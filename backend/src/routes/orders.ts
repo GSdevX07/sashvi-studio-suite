@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import { calculateOrderTotals } from "../lib/checkout";
 import { sendEmail, buildOrderConfirmationEmail } from "../lib/email";
 import { requireAuth, AuthedRequest } from "../middleware/auth";
-import { reduceStockForOrderItems, restoreStockForOrder, validateStockAvailability } from "../lib/inventory";
+import { reduceStockForOrderItems, restoreStockForOrder, validateAndReserveStock } from "../lib/inventory";
 import { calcDiscount } from "./coupons";
 
 export const ordersRouter = express.Router();
@@ -83,8 +83,8 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     return res.status(400).json({ error: "missing_shipping" });
   }
 
-  // Validate stock availability before proceeding
-  const stockValidation = await validateStockAvailability(items);
+  // Validate and reserve stock availability before proceeding
+  const stockValidation = await validateAndReserveStock(items);
   if (!stockValidation.valid) {
     return res.status(400).json({ 
       error: "insufficient_stock",

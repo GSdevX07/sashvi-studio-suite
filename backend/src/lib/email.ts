@@ -123,10 +123,6 @@ export function buildOrderConfirmationEmail(opts: {
                     <td style="padding:10px 12px;text-align:right;font-size:13px;color:#3d2b1f;">${formatINR(codCharge)}</td>
                   </tr>
                   ` : ""}
-                  <tr>
-                    <td colspan="2" style="padding:10px 12px;text-align:right;font-size:13px;color:#5a4438;">Payment gateway charges:</td>
-                    <td style="padding:10px 12px;text-align:right;font-size:13px;color:#3d2b1f;">${formatINR(gatewayCharge)}</td>
-                  </tr>
                   <tr style="background:#faf0e4;">
                     <td colspan="2" style="padding:14px 12px;text-align:right;font-size:15px;font-weight:bold;color:#2c1a0e;">Grand Total:</td>
                     <td style="padding:14px 12px;text-align:right;font-size:15px;font-weight:bold;color:#8b4513;">${formatINR(grandTotal)}</td>
