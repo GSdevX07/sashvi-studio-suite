@@ -14,7 +14,6 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
   const navigate = useNavigate();
   const wishlisted = isWishlisted(product.id);
   const isOutOfStock = stock === 0;
-  const isLowStock = stock !== undefined && stock > 0 && stock < 5;
   const discount = normalizeDiscountFields(product);
   const discountBadge = getPremiumDiscountBadge(product);
 
@@ -81,11 +80,6 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
         {product.isNew && (
           <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-widest text-foreground shadow-soft">
             New
-          </span>
-        )}
-        {isLowStock && (
-          <span className="absolute left-3 top-3 rounded-full bg-orange-500/90 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-white shadow-soft">
-            Low Stock
           </span>
         )}
         {hasProductDiscount(product) && discountBadge ? (

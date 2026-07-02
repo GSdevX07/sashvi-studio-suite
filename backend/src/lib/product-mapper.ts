@@ -261,19 +261,52 @@ export async function fetchProductsWithCategories(
   if (error) throw error;
 
   const rows = (products ?? []) as Record<string, unknown>[];
-  const categoryIds = [
-    ...new Set(rows.map((p) => p.category_id).filter(Boolean) as string[]),
-  ];
   const productIds = [
     ...new Set(rows.map((p) => p.id).filter(Boolean) as string[]),
   ];
 
+  // Fetch all categories for products from junction table
+  let productCategoriesMap: Record<string, string[]> = {};
+  let categoryIds: string[] = [];
+  if (productIds.length > 0) {
+    const { data: productCategories } = await supabase
+      .from("product_categories")
+      .select("product_id, category_id")
+      .in("product_id", productIds);
+    
+    if (productCategories && Array.isArray(productCategories)) {
+      productCategoriesMap = productCategories.reduce((acc: Record<string, string[]>, pc: Record<string, unknown>) => {
+        const productId = String(pc.product_id);
+        const categoryId = String(pc.category_id);
+        if (!acc[productId]) {
+          acc[productId] = [];
+        }
+        acc[productId].push(categoryId);
+        categoryIds.push(categoryId);
+        return acc;
+      }, {} as Record<string, string[]>);
+    }
+  }
+
+  // Also include legacy category_id from products table
+  rows.forEach((p) => {
+    if (p.category_id && !productCategoriesMap[String(p.id)]?.includes(String(p.category_id))) {
+      if (!productCategoriesMap[String(p.id)]) {
+        productCategoriesMap[String(p.id)] = [];
+      }
+      productCategoriesMap[String(p.id)].push(String(p.category_id));
+      categoryIds.push(String(p.category_id));
+    }
+  });
+
+  // Fetch category details
   let categoryMap: Record<string, Record<string, unknown>> = {};
   if (categoryIds.length > 0) {
+    const uniqueCategoryIds = [...new Set(categoryIds)];
     const { data: categories } = await supabase
       .from("categories")
       .select("id, name, type, image")
-      .in("id", categoryIds);
+      .in("id", uniqueCategoryIds);
     categoryMap = Object.fromEntries(
       (categories ?? []).map((c: Record<string, unknown>) => [String(c.id), c]),
     );
@@ -298,16 +331,29 @@ export async function fetchProductsWithCategories(
     }
   }
 
-  let mapped = rows.map((p) =>
-    mapProductRow({
+  let mapped = rows.map((p) => {
+    const productCategoryIds = productCategoriesMap[String(p.id)] || [];
+    const productCategories = productCategoryIds
+      .map((cid) => categoryMap[cid])
+      .filter(Boolean);
+    
+    // Use first category for backward compatibility, but store all
+    const primaryCategory = productCategories[0] || null;
+    
+    return mapProductRow({
       ...p,
-      categories: p.category_id ? categoryMap[String(p.category_id)] ?? null : null,
-    }, variantsMap[String(p.id)] ?? []),
-  );
+      categories: primaryCategory,
+      allCategories: productCategories,
+    }, variantsMap[String(p.id)] ?? []);
+  });
 
   if (options?.productType) {
     const type = options.productType.toLowerCase();
-    mapped = mapped.filter((p) => p.productType === type || p.categories.includes(type as Category));
+    mapped = mapped.filter((p) => {
+      const productCategories = (p as any).allCategories || [];
+      const categoryTypes = productCategories.map((c: any) => c.type);
+      return p.productType === type || categoryTypes.includes(type);
+    });
   }
 
   return mapped;
