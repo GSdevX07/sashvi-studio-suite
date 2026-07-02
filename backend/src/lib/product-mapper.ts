@@ -12,6 +12,7 @@ export type ColorVariant = {
 
 export function mapProductRow(p: Record<string, unknown>, variants?: Record<string, unknown>[]) {
   const cat = (p.categories as Record<string, unknown> | null) ?? null;
+  const allCategories = (p.allCategories as Record<string, unknown>[] | null) ?? [];
   const productType = String(cat?.type ?? "sarees") as Category;
   const imageUrls = Array.isArray(p.image_urls) ? (p.image_urls as string[]) : [];
   const tagName = cat?.name ? String(cat.name) : "";
@@ -46,6 +47,9 @@ export function mapProductRow(p: Record<string, unknown>, variants?: Record<stri
     ? colorVariants.reduce((sum, v) => sum + v.stock, 0)
     : Number(p.stock ?? 0);
 
+  // Get all category names from allCategories for tags
+  const allCategoryNames = allCategories.map((c: Record<string, unknown>) => String(c.name ?? "")).filter(Boolean);
+
   return {
     id: String(p.id ?? ""),
     slug: String(p.slug ?? ""),
@@ -62,7 +66,7 @@ export function mapProductRow(p: Record<string, unknown>, variants?: Record<stri
     image: imageUrls[0] ?? "",
     images: imageUrls,
     categories: [productType],
-    tags: tagName ? [tagName] : [],
+    tags: allCategoryNames.length > 0 ? allCategoryNames : (tagName ? [tagName] : []),
     stock: totalStock,
     description: String(p.description ?? ""),
     sku: `SS-${String(p.id ?? "")
@@ -395,6 +399,24 @@ export async function fetchProductById(supabase: SupabaseClient, id: string) {
     cat = data;
   }
 
+  // Fetch all categories for this product from junction table
+  const { data: productCategories } = await supabase
+    .from("product_categories")
+    .select("category_id")
+    .eq("product_id", id);
+
+  let allCategories: Record<string, unknown>[] = [];
+  if (productCategories && Array.isArray(productCategories)) {
+    const categoryIds = productCategories.map((pc: Record<string, unknown>) => String(pc.category_id));
+    if (categoryIds.length > 0) {
+      const { data: categories } = await supabase
+        .from("categories")
+        .select("id, name, type, image")
+        .in("id", categoryIds);
+      allCategories = (categories as Record<string, unknown>[]) ?? [];
+    }
+  }
+
   // Fetch variants for this product
   const { data: variants } = await supabase
     .from("product_variants")
@@ -402,7 +424,7 @@ export async function fetchProductById(supabase: SupabaseClient, id: string) {
     .eq("product_id", id);
 
   return mapProductRow(
-    { ...product, categories: cat },
+    { ...product, categories: cat, allCategories },
     (variants as Record<string, unknown>[]) ?? [],
   );
 }
@@ -426,6 +448,24 @@ export async function fetchProductBySlug(supabase: SupabaseClient, slug: string)
     cat = data;
   }
 
+  // Fetch all categories for this product from junction table
+  const { data: productCategories } = await supabase
+    .from("product_categories")
+    .select("category_id")
+    .eq("product_id", product.id);
+
+  let allCategories: Record<string, unknown>[] = [];
+  if (productCategories && Array.isArray(productCategories)) {
+    const categoryIds = productCategories.map((pc: Record<string, unknown>) => String(pc.category_id));
+    if (categoryIds.length > 0) {
+      const { data: categories } = await supabase
+        .from("categories")
+        .select("id, name, type, image")
+        .in("id", categoryIds);
+      allCategories = (categories as Record<string, unknown>[]) ?? [];
+    }
+  }
+
   // Fetch variants for this product
   const { data: variants } = await supabase
     .from("product_variants")
@@ -433,7 +473,7 @@ export async function fetchProductBySlug(supabase: SupabaseClient, slug: string)
     .eq("product_id", product.id);
 
   return mapProductRow(
-    { ...product, categories: cat },
+    { ...product, categories: cat, allCategories },
     (variants as Record<string, unknown>[]) ?? [],
   );
 }

@@ -91,6 +91,25 @@ productsRouter.post("/", requireAdmin as any, async (req: AuthedRequest, res) =>
     await saveProductVariants(supabase, String(data.id), body.colorVariants as any[]);
   }
 
+  // Save multiple categories from tags to junction table
+  if (Array.isArray(body.tags) && body.tags.length > 0) {
+    const categoryIds: string[] = [];
+    for (const tag of body.tags as string[]) {
+      const catId = await resolveCategoryId(supabase, parsed._productType, tag);
+      if (catId && !categoryIds.includes(catId)) {
+        categoryIds.push(catId);
+      }
+    }
+    // Insert all category relationships
+    if (categoryIds.length > 0) {
+      const productCategories = categoryIds.map((catId) => ({
+        product_id: data.id,
+        category_id: catId,
+      }));
+      await supabase.from("product_categories").insert(productCategories);
+    }
+  }
+
   const product = await fetchProductById(supabase, String(data.id));
   return res.json({ product });
 });
@@ -125,6 +144,28 @@ productsRouter.put("/:id", requireAdmin as any, async (req: AuthedRequest, res) 
   // Save variants if provided
   if (body.colorVariants && Array.isArray(body.colorVariants)) {
     await saveProductVariants(supabase, id, body.colorVariants as any[]);
+  }
+
+  // Update multiple categories from tags in junction table
+  if (Array.isArray(body.tags)) {
+    const productType = String(body.productType ?? "sarees");
+    const categoryIds: string[] = [];
+    for (const tag of body.tags as string[]) {
+      const catId = await resolveCategoryId(supabase, productType, tag);
+      if (catId && !categoryIds.includes(catId)) {
+        categoryIds.push(catId);
+      }
+    }
+    // Delete existing category relationships for this product
+    await supabase.from("product_categories").delete().eq("product_id", id);
+    // Insert new category relationships
+    if (categoryIds.length > 0) {
+      const productCategories = categoryIds.map((catId) => ({
+        product_id: id,
+        category_id: catId,
+      }));
+      await supabase.from("product_categories").insert(productCategories);
+    }
   }
 
   const product = await fetchProductById(supabase, id);
