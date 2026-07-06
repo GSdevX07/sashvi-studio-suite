@@ -19,6 +19,7 @@ export interface CartItem {
   available?: boolean;
   variant_id?: string;
   selected_color?: string;
+  buyOneGetOne?: boolean;
 }
 
 interface CartContextValue {

@@ -210,8 +210,15 @@ function CartPage() {
                     className="aspect-square w-full rounded-xl object-cover"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="font-display text-lg leading-tight text-foreground">
-                      {item.name}
+                    <div className="flex items-center gap-2">
+                      <div className="font-display text-lg leading-tight text-foreground">
+                        {item.name}
+                      </div>
+                      {item.buyOneGetOne && (
+                        <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-widest text-accent-foreground">
+                          Buy 1 Get 1
+                        </span>
+                      )}
                     </div>
                     <div className="mt-3 inline-flex items-center rounded-full border border-border">
                       <button

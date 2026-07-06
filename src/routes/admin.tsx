@@ -1956,7 +1956,7 @@ function Admin() {
                           onChange={(e) =>
                             setPf((prev) => ({ ...prev, description: e.target.value }))
                           }
-                          className={FI}
+                          className={`${FI} whitespace-pre-wrap`}
                           rows={3}
                         />
                       </div>

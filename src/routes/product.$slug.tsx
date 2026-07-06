@@ -247,18 +247,22 @@ function ProductPage() {
     // Find the selected variant if a color is selected
     const selectedVariant = product.colorVariants?.find((v: any) => v.color === selectedColor);
     
+    // For Buy 1 Get 1, add 2 items automatically
+    const quantityToAdd = product.buyOneGetOne ? 2 : qty;
+    
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
-      qty,
+      qty: quantityToAdd,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
       variant_id: selectedVariant?.id,
       selected_color: selectedColor || selectedVariant?.color,
+      buyOneGetOne: product.buyOneGetOne,
     });
-    toast.success("Added to cart");
+    toast.success(product.buyOneGetOne ? "Added 2 items to cart (Buy 1 Get 1)" : "Added to cart");
   };
 
   // Safe access to categories
@@ -365,7 +369,15 @@ function ProductPage() {
             })()}
           </div>
 
-          <p className="mt-4 sm:mt-6 text-sm sm:text-base text-foreground/80 leading-relaxed">{product.description}</p>
+          <p className="mt-4 sm:mt-6 text-sm sm:text-base text-foreground/80 leading-relaxed whitespace-pre-wrap">{product.description}</p>
+
+          {product.buyOneGetOne && (
+            <div className="mt-4 sm:mt-6">
+              <span className="inline-flex items-center rounded-full bg-accent px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+                Buy 1 Get 1
+              </span>
+            </div>
+          )}
 
           <div className="mt-4 sm:mt-6 flex flex-wrap gap-2">
             {product.tags.map((t) => (
