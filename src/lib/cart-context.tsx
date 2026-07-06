@@ -190,6 +190,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 stock: currentStock,
                 discountType: discount.discountType,
                 discountValue: discount.discountValue,
+                buyOneGetOne: latestProduct.buyOneGetOne,
                 available: currentStock > 0,
               };
             }

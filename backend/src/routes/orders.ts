@@ -94,19 +94,13 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   }
 
   // Calculate product total from original prices
-  const productTotal = items.reduce((s: number, it: any) => {
-    // For BOGO items, charge for 1 item even if qty is 2
-    const qtyToCharge = it.buyOneGetOne ? 1 : it.qty;
-    return s + it.price * qtyToCharge;
-  }, 0);
+  const productTotal = items.reduce((s: number, it: any) => s + it.price * it.qty, 0);
 
   // Calculate effective product total after product discounts
   const effectiveProductTotal = items.reduce((s: number, it: any) => {
     const discount = it.discount || 0;
     const effectivePrice = it.price - discount;
-    // For BOGO items, charge for 1 item even if qty is 2
-    const qtyToCharge = it.buyOneGetOne ? 1 : it.qty;
-    return s + effectivePrice * qtyToCharge;
+    return s + effectivePrice * it.qty;
   }, 0);
 
   // Apply coupon discount on effective price (after product discount)

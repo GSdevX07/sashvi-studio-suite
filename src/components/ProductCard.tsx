@@ -35,14 +35,11 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
       navigate({ to: "/my-account" });
       return;
     }
-    // For Buy 1 Get 1, add 2 items automatically
-    const quantityToAdd = product.buyOneGetOne ? 2 : 1;
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
-      qty: quantityToAdd,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
       buyOneGetOne: product.buyOneGetOne,
@@ -84,11 +81,6 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
         {product.isNew && (
           <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-widest text-foreground shadow-soft">
             New
-          </span>
-        )}
-        {product.buyOneGetOne && (
-          <span className="absolute left-3 top-3 rounded-full bg-accent/90 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-accent-foreground shadow-soft">
-            Buy 1 Get 1
           </span>
         )}
         {hasProductDiscount(product) && discountBadge ? (
