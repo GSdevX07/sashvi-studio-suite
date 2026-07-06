@@ -257,7 +257,6 @@ function ProductPage() {
       discountValue: discount.discountValue,
       variant_id: selectedVariant?.id,
       selected_color: selectedColor || selectedVariant?.color,
-      buyOneGetOne: product.buyOneGetOne,
     });
     toast.success("Added to cart");
   };

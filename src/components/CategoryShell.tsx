@@ -24,7 +24,6 @@ interface Props {
   minPrice?: number;
   maxPrice?: number;
   basePath: string;
-  activeBogo?: string;
   children?: ReactNode;
 }
 
@@ -38,7 +37,6 @@ export function CategoryShell({
   minPrice,
   maxPrice,
   basePath,
-  activeBogo,
   children,
 }: Props) {
   const navigate = useNavigate();
@@ -59,7 +57,6 @@ export function CategoryShell({
         sort: newSort === "featured" ? undefined : newSort,
         minPrice,
         maxPrice,
-        bogo: activeBogo,
       } as any,
     });
   };
@@ -72,20 +69,6 @@ export function CategoryShell({
         sort: activeSort,
         minPrice: val[0] === 0 ? undefined : val[0],
         maxPrice: val[1] === 10000 ? undefined : val[1],
-        bogo: activeBogo,
-      } as any,
-    });
-  };
-
-  const handleBogoToggle = () => {
-    navigate({
-      to: basePath as any,
-      search: {
-        tag: activeTag,
-        sort: activeSort,
-        minPrice,
-        maxPrice,
-        bogo: activeBogo ? undefined : "true",
       } as any,
     });
   };
@@ -107,7 +90,7 @@ export function CategoryShell({
           <div className="flex flex-wrap gap-2 items-center">
             <Link
               to={basePath as any}
-              search={{ sort: activeSort, minPrice, maxPrice, bogo: activeBogo }}
+              search={{ sort: activeSort, minPrice, maxPrice } as any}
               className={`rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
                 !activeTag
                   ? "border-foreground bg-foreground text-background shadow-sm scale-102"
@@ -122,7 +105,7 @@ export function CategoryShell({
                 <Link
                   key={filterName}
                   to={basePath as any}
-                  search={{ tag: filterName, sort: activeSort, minPrice, maxPrice, bogo: activeBogo } as any}
+                  search={{ tag: filterName, sort: activeSort, minPrice, maxPrice } as any}
                   className={`rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
                     activeTag === filterName
                       ? "border-foreground bg-foreground text-background shadow-sm scale-102"
@@ -133,16 +116,6 @@ export function CategoryShell({
                 </Link>
               );
             })}
-            <button
-              onClick={handleBogoToggle}
-              className={`rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
-                activeBogo === "true"
-                  ? "border-accent bg-accent text-accent-foreground shadow-sm scale-102"
-                  : "border-border bg-card text-foreground/70 hover:border-accent hover:text-accent hover:scale-[1.01]"
-              }`}
-            >
-              Buy 1 Get 1
-            </button>
           </div>
 
           <div className="flex flex-col gap-4 w-full md:w-auto min-w-[280px] md:items-end">

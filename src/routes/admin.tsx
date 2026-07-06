@@ -142,7 +142,6 @@ type ProductAdmin = {
   isBestSeller?: boolean;
   featured?: boolean;
   color?: string;
-  buyOneGetOne?: boolean;
   colorVariants?: ColorVariant[];
 };
 
@@ -177,7 +176,6 @@ type ProductFormState = {
   isNew: boolean;
   isBestSeller: boolean;
   color: string;
-  buyOneGetOne: boolean;
   colorVariants: ColorVariant[];
 };
 
@@ -620,7 +618,6 @@ const emptyProductForm: ProductFormState = {
   isNew: false,
   isBestSeller: false,
   color: "",
-  buyOneGetOne: false,
   colorVariants: [],
 };
 
@@ -992,7 +989,6 @@ function Admin() {
         isNew: product.isNew ?? false,
         isBestSeller: product.isBestSeller ?? false,
         color: product.color ?? "",
-        buyOneGetOne: product.buyOneGetOne ?? false,
         colorVariants: product.colorVariants ?? [],
       });
       setEditingProductId(product.id);
@@ -1221,7 +1217,7 @@ function Admin() {
 
   async function approveReview(id: number) {
     await apiDirect(`reviews/${id}`, { method: "PATCH", body: JSON.stringify({ status: "Approved" }) });
-    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, status: "Approved" } : r)));
+    setReviews((prev) => prev.map((r) => (r.id === String(id) ? { ...r, status: "Approved" } : r)));
   }
 
   async function deleteReview(id: string) {
@@ -2329,17 +2325,6 @@ function Admin() {
                             className="rounded border-border"
                           />
                           Best Seller
-                        </label>
-                        <label className="flex cursor-pointer items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={pf.buyOneGetOne}
-                            onChange={(e) =>
-                              setPf((prev) => ({ ...prev, buyOneGetOne: e.target.checked }))
-                            }
-                            className="rounded border-border"
-                          />
-                          Buy 1 Get 1 Offer
                         </label>
                       </div>
 

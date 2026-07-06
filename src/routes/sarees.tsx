@@ -10,7 +10,6 @@ type Search = {
   sort?: string;
   minPrice?: number;
   maxPrice?: number;
-  bogo?: string;
 };
 
 export const Route = createFileRoute("/sarees")({
@@ -19,7 +18,6 @@ export const Route = createFileRoute("/sarees")({
     sort: typeof s.sort === "string" ? s.sort : undefined,
     minPrice: s.minPrice !== undefined ? Number(s.minPrice) : undefined,
     maxPrice: s.maxPrice !== undefined ? Number(s.maxPrice) : undefined,
-    bogo: typeof s.bogo === "string" ? s.bogo : undefined,
   }),
   head: () => ({
     meta: [
@@ -35,7 +33,7 @@ export const Route = createFileRoute("/sarees")({
 });
 
 function SareesPage() {
-  const { tag, sort, minPrice, maxPrice, bogo } = Route.useSearch();
+  const { tag, sort, minPrice, maxPrice } = Route.useSearch();
   const { products: all } = useCatalogProducts("sarees");
   const dbFilters = useCategoryFilters("sarees");
   const filters = dbFilters.length > 0 ? dbFilters : SAREE_CATEGORIES;
@@ -43,8 +41,7 @@ function SareesPage() {
     const matchesTag = !tag || p.tags.includes(tag);
     const matchesMinPrice = minPrice === undefined || p.price >= minPrice;
     const matchesMaxPrice = maxPrice === undefined || p.price <= maxPrice;
-    const matchesBogo = bogo !== "true" || p.buyOneGetOne === true;
-    return matchesTag && matchesMinPrice && matchesMaxPrice && matchesBogo;
+    return matchesTag && matchesMinPrice && matchesMaxPrice;
   });
   const products = sortProducts(filtered, sort || "featured");
 
@@ -60,7 +57,6 @@ function SareesPage() {
         minPrice={minPrice}
         maxPrice={maxPrice}
         basePath="/sarees"
-        activeBogo={bogo}
       >
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">

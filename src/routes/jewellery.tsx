@@ -10,7 +10,6 @@ type Search = {
   sort?: string;
   minPrice?: number;
   maxPrice?: number;
-  bogo?: string;
 };
 
 export const Route = createFileRoute("/jewellery")({
@@ -19,7 +18,6 @@ export const Route = createFileRoute("/jewellery")({
     sort: typeof s.sort === "string" ? s.sort : undefined,
     minPrice: s.minPrice !== undefined ? Number(s.minPrice) : undefined,
     maxPrice: s.maxPrice !== undefined ? Number(s.maxPrice) : undefined,
-    bogo: typeof s.bogo === "string" ? s.bogo : undefined,
   }),
   head: () => ({
     meta: [
@@ -34,7 +32,7 @@ export const Route = createFileRoute("/jewellery")({
 });
 
 function JewelleryPage() {
-  const { tag, sort, minPrice, maxPrice, bogo } = Route.useSearch();
+  const { tag, sort, minPrice, maxPrice } = Route.useSearch();
   const { products: all } = useCatalogProducts("jewellery");
   const dbFilters = useCategoryFilters("jewellery");
   const filters = dbFilters.length > 0 ? dbFilters : JEWELLERY_CATEGORIES;
@@ -42,8 +40,7 @@ function JewelleryPage() {
     const matchesTag = !tag || p.tags.includes(tag);
     const matchesMinPrice = minPrice === undefined || p.price >= minPrice;
     const matchesMaxPrice = maxPrice === undefined || p.price <= maxPrice;
-    const matchesBogo = bogo !== "true" || p.buyOneGetOne === true;
-    return matchesTag && matchesMinPrice && matchesMaxPrice && matchesBogo;
+    return matchesTag && matchesMinPrice && matchesMaxPrice;
   });
   const products = sortProducts(filtered, sort || "featured");
 
@@ -59,7 +56,6 @@ function JewelleryPage() {
         minPrice={minPrice}
         maxPrice={maxPrice}
         basePath="/jewellery"
-        activeBogo={bogo}
       >
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">

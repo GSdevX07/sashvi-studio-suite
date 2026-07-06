@@ -42,7 +42,6 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
       image: product.image,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
-      buyOneGetOne: product.buyOneGetOne,
     });
   }
 

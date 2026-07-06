@@ -39,7 +39,6 @@ export interface Product {
   isFeatured?: boolean;
   isBestSelling?: boolean;
   isBestSeller?: boolean;
-  buyOneGetOne?: boolean;
   rating?: number;
   reviewCount?: number;
   description: string;
