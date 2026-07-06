@@ -59,6 +59,7 @@ function JewelleryPage() {
         minPrice={minPrice}
         maxPrice={maxPrice}
         basePath="/jewellery"
+        activeBogo={bogo}
       >
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
