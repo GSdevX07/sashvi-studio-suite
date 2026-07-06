@@ -88,11 +88,19 @@ function CartPage() {
   }, [isLoggedIn, items]);
 
   const listSubtotal = items.reduce(
-    (sum, item) => sum + getCartItemListPrice(item) * item.qty,
+    (sum, item) => {
+      // For BOGO items, charge for 1 item even if qty is 2
+      const qtyToCharge = item.buyOneGetOne ? 1 : item.qty;
+      return sum + getCartItemListPrice(item) * qtyToCharge;
+    },
     0,
   );
   const effectiveSubtotal = items.reduce(
-    (sum, item) => sum + getCartItemEffectivePrice(item) * item.qty,
+    (sum, item) => {
+      // For BOGO items, charge for 1 item even if qty is 2
+      const qtyToCharge = item.buyOneGetOne ? 1 : item.qty;
+      return sum + getCartItemEffectivePrice(item) * qtyToCharge;
+    },
     0,
   );
   const productDiscount = listSubtotal - effectiveSubtotal;

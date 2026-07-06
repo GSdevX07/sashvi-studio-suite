@@ -115,12 +115,20 @@ function CheckoutPage() {
   }, []);
 
   const listSubtotal = useMemo(
-    () => items.reduce((sum, item) => sum + item.listPrice * item.cartItem.qty, 0),
+    () => items.reduce((sum, item) => {
+      // For BOGO items, charge for 1 item even if qty is 2
+      const qtyToCharge = item.cartItem.buyOneGetOne ? 1 : item.cartItem.qty;
+      return sum + item.listPrice * qtyToCharge;
+    }, 0),
     [items],
   );
 
   const effectiveSubtotal = useMemo(
-    () => items.reduce((sum, item) => sum + item.effectivePrice * item.cartItem.qty, 0),
+    () => items.reduce((sum, item) => {
+      // For BOGO items, charge for 1 item even if qty is 2
+      const qtyToCharge = item.cartItem.buyOneGetOne ? 1 : item.cartItem.qty;
+      return sum + item.effectivePrice * qtyToCharge;
+    }, 0),
     [items],
   );
 
