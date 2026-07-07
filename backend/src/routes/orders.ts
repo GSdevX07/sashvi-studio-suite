@@ -106,6 +106,15 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
       const payableQuantity = Math.ceil(it.qty / 2);
       const freeQuantity = it.qty - payableQuantity;
       const finalPrice = payableQuantity * unitPrice;
+      console.log('Backend BOGO calculation:', {
+        itemName: it.name,
+        qty: it.qty,
+        buyOneGetOne: it.buyOneGetOne,
+        payableQuantity,
+        freeQuantity,
+        unitPrice,
+        finalPrice
+      });
       return s + finalPrice;
     }
     

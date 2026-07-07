@@ -68,7 +68,17 @@ export function getCartItemEffectivePrice(item: CartItem): number {
   // Then divide by qty to get effective price per item
   if (item.buyOneGetOne) {
     const payableQuantity = Math.ceil(item.qty / 2);
-    return (payableQuantity * item.price) / item.qty;
+    const effectivePrice = (payableQuantity * item.price) / item.qty;
+    console.log('BOGO calculation:', {
+      itemName: item.name,
+      qty: item.qty,
+      buyOneGetOne: item.buyOneGetOne,
+      payableQuantity,
+      effectivePrice,
+      unitPrice: item.price,
+      total: effectivePrice * item.qty
+    });
+    return effectivePrice;
   }
   
   if (!item.discountApplied) return item.price;
