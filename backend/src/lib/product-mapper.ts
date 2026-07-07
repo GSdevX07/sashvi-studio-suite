@@ -270,6 +270,12 @@ export async function fetchProductsWithCategories(
   if (error) throw error;
 
   const rows = (products ?? []) as Record<string, unknown>[];
+  console.log('fetchProductsWithCategories - raw product rows:', rows.map((p: any) => ({ 
+    name: p.title, 
+    is_bogo: p.is_bogo,
+    hasIsBogoColumn: 'is_bogo' in p 
+  })));
+  
   const productIds = [
     ...new Set(rows.map((p) => p.id).filter(Boolean) as string[]),
   ];
