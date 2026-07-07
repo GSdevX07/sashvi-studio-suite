@@ -247,15 +247,12 @@ function ProductPage() {
     // Find the selected variant if a color is selected
     const selectedVariant = product.colorVariants?.find((v: any) => v.color === selectedColor);
     
-    // For BOGO products, add 2 items but charge for 1
-    const quantityToAdd = product.buyOneGetOne ? 2 : qty;
-    
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
-      qty: quantityToAdd,
+      qty,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
       variant_id: selectedVariant?.id,

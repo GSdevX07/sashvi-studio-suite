@@ -254,10 +254,11 @@ function CheckoutPage() {
           category: "",
           color: item.cartItem.selected_color,
           qty: item.cartItem.qty,
-          price: item.cartItem.buyOneGetOne ? item.effectivePrice : item.listPrice, // For BOGO, send effective price (halved)
+          price: item.listPrice, // Send original price, backend will calculate BOGO
           discountType: item.cartItem.discountType,
           discountValue: item.cartItem.discountValue,
-          discount: item.cartItem.buyOneGetOne ? 0 : item.listPrice - item.effectivePrice, // For BOGO, discount is 0 since price is already halved
+          discount: item.listPrice - item.effectivePrice, // Send product discount amount
+          buyOneGetOne: item.cartItem.buyOneGetOne, // Send BOGO flag for backend calculation
         })),
         shipping: { name, email, phone, address },
         paymentMode,
@@ -488,35 +489,50 @@ function CheckoutPage() {
             <div className="eyebrow mb-3">Cart Summary</div>
             <div className="space-y-4">
               {items.length ? (
-                items.map((item) => (
-                  <div key={item.cartItem.id} className="flex items-center gap-4">
-                    <img
-                      src={item.cartItem.image}
-                      alt={item.cartItem.name}
-                      className="h-20 w-20 rounded-2xl object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-foreground">{item.cartItem.name}</div>
-                      <div className="text-xs text-muted-foreground">Qty {item.cartItem.qty}</div>
-                    </div>
-                    <div className="text-right">
-                      {item.cartItem.discountApplied && item.effectivePrice < item.listPrice ? (
-                        <>
-                          <div className="text-xs text-muted-foreground line-through">
+                items.map((item) => {
+                  // BOGO calculations
+                  const payableQuantity = item.cartItem.buyOneGetOne ? Math.ceil(item.cartItem.qty / 2) : item.cartItem.qty;
+                  const freeQuantity = item.cartItem.buyOneGetOne ? item.cartItem.qty - payableQuantity : 0;
+                  const savings = item.cartItem.buyOneGetOne ? freeQuantity * item.cartItem.price : 0;
+                  
+                  return (
+                    <div key={item.cartItem.id} className="flex items-center gap-4">
+                      <img
+                        src={item.cartItem.image}
+                        alt={item.cartItem.name}
+                        className="h-20 w-20 rounded-2xl object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-foreground">{item.cartItem.name}</div>
+                        <div className="text-xs text-muted-foreground">Qty {item.cartItem.qty}</div>
+                        {item.cartItem.buyOneGetOne && (
+                          <div className="mt-1 rounded bg-accent/10 px-2 py-1 text-xs">
+                            <div className="font-medium text-accent">BOGO Offer</div>
+                            <div className="text-muted-foreground">
+                              Payable: {payableQuantity} | Free: {freeQuantity}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        {item.cartItem.buyOneGetOne || (item.cartItem.discountApplied && item.effectivePrice < item.listPrice) ? (
+                          <>
+                            <div className="text-xs text-muted-foreground line-through">
+                              {formatINR(item.listPrice * item.cartItem.qty)}
+                            </div>
+                            <div className="text-sm font-medium">
+                              {formatINR(item.effectivePrice * item.cartItem.qty)}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-sm font-medium">
                             {formatINR(item.listPrice * item.cartItem.qty)}
                           </div>
-                          <div className="text-sm font-medium">
-                            {formatINR(item.effectivePrice * item.cartItem.qty)}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-sm font-medium">
-                          {formatINR(item.listPrice * item.cartItem.qty)}
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="rounded-2xl border border-border bg-background p-6 text-sm text-muted-foreground">
                   Your cart is empty. Add items from the shop before checking out.

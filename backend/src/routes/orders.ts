@@ -96,12 +96,21 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
   // Calculate product total from original prices
   const productTotal = items.reduce((s: number, it: any) => s + it.price * it.qty, 0);
 
-  // Calculate effective product total after product discounts
+  // Calculate effective product total after product discounts and BOGO
   const effectiveProductTotal = items.reduce((s: number, it: any) => {
-    // For BOGO items, the price sent from frontend is already halved per item
-    // So we use the price directly from the item
     const discount = it.discount || 0;
-    const effectivePrice = it.price - discount;
+    const unitPrice = it.price;
+    
+    // For BOGO items, calculate payable quantity: Math.ceil(qty / 2)
+    if (it.buyOneGetOne) {
+      const payableQuantity = Math.ceil(it.qty / 2);
+      const freeQuantity = it.qty - payableQuantity;
+      const finalPrice = payableQuantity * unitPrice;
+      return s + finalPrice;
+    }
+    
+    // For non-BOGO items, normal calculation
+    const effectivePrice = unitPrice - discount;
     return s + effectivePrice * it.qty;
   }, 0);
 
@@ -244,7 +253,19 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
     const firstImage = product?.images?.[0] || "";
     const firstCategory = product?.tags?.[0] || "";
     const discountAmount = item.discount || 0;
-    const finalPrice = item.price - discountAmount;
+    const unitPrice = item.price;
+    
+    // Calculate BOGO fields if applicable
+    let selectedQuantity = item.qty;
+    let payableQuantity = item.qty;
+    let freeQuantity = 0;
+    let finalPrice = unitPrice - discountAmount;
+    
+    if (item.buyOneGetOne) {
+      payableQuantity = Math.ceil(item.qty / 2);
+      freeQuantity = item.qty - payableQuantity;
+      finalPrice = payableQuantity * unitPrice;
+    }
 
     return {
       order_id: orderId, // Use the display order_id (SS-20260626-XXXXX) not the internal UUID
@@ -252,6 +273,13 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
       variant_id: item.variant_id && UUID_RE.test(item.variant_id) ? item.variant_id : null,
       quantity: item.qty,
       price: item.price,
+      // BOGO fields
+      selected_quantity: selectedQuantity,
+      payable_quantity: payableQuantity,
+      free_quantity: freeQuantity,
+      unit_price: unitPrice,
+      discount_amount: discountAmount,
+      final_price: finalPrice,
       // Snapshot fields - prioritize database, fallback to frontend data
       product_name: product?.title || item.name || "Product",
       product_image: firstImage || item.image || "",
@@ -261,7 +289,6 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
       selected_color: item.color || "",
       selected_size: item.size || "",
       discount: discountAmount,
-      final_price: finalPrice,
       discount_type: item.discountType || null,
       discount_value: item.discountValue || 0,
     };

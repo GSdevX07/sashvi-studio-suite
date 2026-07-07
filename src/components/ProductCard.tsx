@@ -35,14 +35,12 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
       navigate({ to: "/my-account" });
       return;
     }
-    // For BOGO products, add 2 items but charge for 1
-    const quantityToAdd = product.buyOneGetOne ? 2 : 1;
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
-      qty: quantityToAdd,
+      qty: 1,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
       buyOneGetOne: product.buyOneGetOne,

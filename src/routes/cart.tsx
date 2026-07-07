@@ -197,6 +197,11 @@ function CartPage() {
               discountValue: item.discountValue,
             });
             const hasDiscount = cartItemHasDiscount(item);
+            
+            // BOGO calculations
+            const payableQuantity = item.buyOneGetOne ? Math.ceil(item.qty / 2) : item.qty;
+            const freeQuantity = item.buyOneGetOne ? item.qty - payableQuantity : 0;
+            const savings = item.buyOneGetOne ? freeQuantity * item.price : 0;
 
             return (
               <div
@@ -245,14 +250,35 @@ function CartPage() {
                           : `${productStock[item.id] - item.qty} left in stock`}
                       </div>
                     )}
+                    {item.buyOneGetOne && (
+                      <div className="mt-2 rounded-lg bg-accent/10 p-2 text-xs">
+                        <div className="font-semibold text-accent mb-1">BOGO Offer Applied</div>
+                        <div className="space-y-0.5 text-muted-foreground">
+                          <div>Selected: {item.qty}</div>
+                          <div>Payable: {payableQuantity}</div>
+                          <div>Free: {freeQuantity}</div>
+                          {savings > 0 && (
+                            <div className="text-accent font-medium">You Saved {formatINR(savings)}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="hidden sm:block text-right">
-                    <div className="font-medium text-foreground">{formatINR(lineListTotal)}</div>
+                    <div className="font-medium text-foreground">{formatINR(lineEffectiveTotal)}</div>
+                    {item.buyOneGetOne && lineListTotal > lineEffectiveTotal && (
+                      <div className="text-xs text-muted-foreground line-through">{formatINR(lineListTotal)}</div>
+                    )}
                   </div>
                 </div>
                 {/* Mobile price display */}
                 <div className="mt-3 sm:hidden flex justify-between items-center">
-                  <div className="font-medium text-foreground">{formatINR(lineListTotal)}</div>
+                  <div>
+                    <div className="font-medium text-foreground">{formatINR(lineEffectiveTotal)}</div>
+                    {item.buyOneGetOne && lineListTotal > lineEffectiveTotal && (
+                      <div className="text-xs text-muted-foreground line-through">{formatINR(lineListTotal)}</div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">

@@ -60,18 +60,15 @@ const CART_KEY = "cart";
 const SAVED_KEY = "saved_for_later";
 
 export function getCartItemListPrice(item: CartItem): number {
-  // For BOGO items, return half price per item so list subtotal shows correct amount
-  if (item.buyOneGetOne) {
-    return item.price / 2;
-  }
   return item.price;
 }
 
 export function getCartItemEffectivePrice(item: CartItem): number {
-  // For BOGO items, charge half price per item (since 2 items are added but only 1 is paid for)
-  // This way: price * qty = (price/2) * 2 = price (correct total for 1 item)
+  // For BOGO items, calculate payable quantity: Math.ceil(qty / 2)
+  // Then divide by qty to get effective price per item
   if (item.buyOneGetOne) {
-    return item.price / 2;
+    const payableQuantity = Math.ceil(item.qty / 2);
+    return (payableQuantity * item.price) / item.qty;
   }
   
   if (!item.discountApplied) return item.price;
