@@ -12,8 +12,8 @@ BEGIN
   
   IF combo_category_id IS NULL THEN
     -- Create combos category if it doesn't exist
-    INSERT INTO categories (type, name, image, description, display_order, is_active)
-    VALUES ('combos', 'Combos', '', 'Combo offers', 1, true)
+    INSERT INTO categories (type, name, image, display_order, is_active)
+    VALUES ('combos', 'Combos', '', 1, true)
     RETURNING id INTO combo_category_id;
   END IF;
   
