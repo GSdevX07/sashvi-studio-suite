@@ -25,6 +25,7 @@ type CatalogProduct = {
   active?: boolean;
   isNew?: boolean;
   isBestSeller?: boolean;
+  buyOneGetOne?: boolean;
   color?: string;
   colorVariants?: ColorVariant[];
 };
@@ -59,6 +60,7 @@ function toProduct(row: CatalogProduct): Product {
     isFeatured: row.featured,
     isNew: row.isNew,
     isBestSeller: row.isBestSeller,
+    buyOneGetOne: row.buyOneGetOne,
     color: row.color,
     colorVariants: row.colorVariants,
   };
