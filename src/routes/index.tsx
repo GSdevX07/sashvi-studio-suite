@@ -58,9 +58,9 @@ function SectionHeading({
       {link && (
         <Link
           to={link}
-          className="hidden sm:inline-flex items-center gap-1.5 text-sm text-foreground/70 hover:text-accent"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-foreground/70 hover:text-accent"
         >
-          {linkLabel ?? "View all"} <ArrowRight className="h-4 w-4" />
+          {linkLabel ?? "View all"} <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
         </Link>
       )}
     </div>
