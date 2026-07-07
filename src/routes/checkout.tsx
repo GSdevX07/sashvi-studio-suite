@@ -254,10 +254,10 @@ function CheckoutPage() {
           category: "",
           color: item.cartItem.selected_color,
           qty: item.cartItem.qty,
-          price: item.listPrice, // Send original price
+          price: item.cartItem.buyOneGetOne ? item.effectivePrice : item.listPrice, // For BOGO, send effective price (halved)
           discountType: item.cartItem.discountType,
           discountValue: item.cartItem.discountValue,
-          discount: item.listPrice - item.effectivePrice, // Send product discount amount for reference
+          discount: item.cartItem.buyOneGetOne ? 0 : item.listPrice - item.effectivePrice, // For BOGO, discount is 0 since price is already halved
         })),
         shipping: { name, email, phone, address },
         paymentMode,

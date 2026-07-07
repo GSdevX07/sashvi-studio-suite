@@ -19,6 +19,7 @@ export interface CartItem {
   available?: boolean;
   variant_id?: string;
   selected_color?: string;
+  buyOneGetOne?: boolean;
 }
 
 interface CartContextValue {
@@ -63,6 +64,11 @@ export function getCartItemListPrice(item: CartItem): number {
 }
 
 export function getCartItemEffectivePrice(item: CartItem): number {
+  // For BOGO items, charge half price per item (since 2 items are added but only 1 is paid for)
+  if (item.buyOneGetOne) {
+    return item.price / 2;
+  }
+  
   if (!item.discountApplied) return item.price;
   const discount = normalizeDiscountFields({
     discountType: item.discountType,
@@ -189,6 +195,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 stock: currentStock,
                 discountType: discount.discountType,
                 discountValue: discount.discountValue,
+                buyOneGetOne: latestProduct.buyOneGetOne,
                 available: currentStock > 0,
               };
             }

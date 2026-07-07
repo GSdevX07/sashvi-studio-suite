@@ -85,6 +85,7 @@ export function mapProductRow(p: Record<string, unknown>, variants?: Record<stri
     featured: Boolean(p.featured ?? false),
     isNew: Boolean(p.is_new ?? false),
     isBestSeller: Boolean(p.is_best_seller ?? false),
+    buyOneGetOne: Boolean(p.is_bogo ?? false),
     color: String(p.color ?? ""),
     colorVariants,
     categoryId: String(p.category_id ?? ""),

@@ -142,6 +142,7 @@ type ProductAdmin = {
   isBestSeller?: boolean;
   featured?: boolean;
   color?: string;
+  buyOneGetOne?: boolean;
   colorVariants?: ColorVariant[];
 };
 
@@ -177,6 +178,7 @@ type ProductFormState = {
   isBestSeller: boolean;
   color: string;
   colorVariants: ColorVariant[];
+  buyOneGetOne: boolean;
 };
 
 type CategoryAdmin = {
@@ -618,6 +620,7 @@ const emptyProductForm: ProductFormState = {
   isNew: false,
   isBestSeller: false,
   color: "",
+  buyOneGetOne: false,
   colorVariants: [],
 };
 
@@ -990,6 +993,7 @@ function Admin() {
         isBestSeller: product.isBestSeller ?? false,
         color: product.color ?? "",
         colorVariants: product.colorVariants ?? [],
+        buyOneGetOne: product.buyOneGetOne ?? false,
       });
       setEditingProductId(product.id);
     } else {
@@ -2325,6 +2329,17 @@ function Admin() {
                             className="rounded border-border"
                           />
                           Best Seller
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={pf.buyOneGetOne}
+                            onChange={(e) =>
+                              setPf((prev) => ({ ...prev, buyOneGetOne: e.target.checked }))
+                            }
+                            className="rounded border-border"
+                          />
+                          Buy 1 Get 1 Offer
                         </label>
                       </div>
 

@@ -98,6 +98,8 @@ ordersRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
 
   // Calculate effective product total after product discounts
   const effectiveProductTotal = items.reduce((s: number, it: any) => {
+    // For BOGO items, the price sent from frontend is already halved per item
+    // So we use the price directly from the item
     const discount = it.discount || 0;
     const effectivePrice = it.price - discount;
     return s + effectivePrice * it.qty;
