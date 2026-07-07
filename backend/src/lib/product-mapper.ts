@@ -90,6 +90,11 @@ export function mapProductRow(p: Record<string, unknown>, variants?: Record<stri
     colorVariants,
     categoryId: String(p.category_id ?? ""),
   };
+  console.log('mapProductRow - buyOneGetOne mapping:', {
+    productName: p.title,
+    is_bogo: p.is_bogo,
+    buyOneGetOne: Boolean(p.is_bogo ?? false)
+  });
 }
 
 export function mapCategoryRow(c: Record<string, unknown>) {

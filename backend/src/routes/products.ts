@@ -26,6 +26,7 @@ productsRouter.get("/catalog", async (req, res) => {
   try {
     const type = typeof req.query.type === "string" ? req.query.type.toLowerCase() : undefined;
     const products = await fetchProductsWithCategories(supabase, { activeOnly: true, productType: type });
+    console.log('Catalog endpoint - BOGO products:', products.filter((p: any) => p.buyOneGetOne).map((p: any) => ({ name: p.name, buyOneGetOne: p.buyOneGetOne })));
     res.setHeader("Cache-Control", "no-store");
     return res.json({ products });
   } catch (error) {

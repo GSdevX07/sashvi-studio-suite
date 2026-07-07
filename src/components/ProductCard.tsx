@@ -35,6 +35,11 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
       navigate({ to: "/my-account" });
       return;
     }
+    console.log('ProductCard - Adding to cart:', {
+      productName: product.name,
+      buyOneGetOne: product.buyOneGetOne,
+      productFull: product
+    });
     addItem({
       id: product.id,
       name: product.name,
