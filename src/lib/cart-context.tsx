@@ -197,7 +197,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 stock: currentStock,
                 discountType: discount.discountType,
                 discountValue: discount.discountValue,
-                buyOneGetOne: latestProduct.buyOneGetOne,
+                buyOneGetOne: latestProduct.buyOneGetOne || cartItem.buyOneGetOne,
                 available: currentStock > 0,
               };
             }
@@ -256,6 +256,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     qty: i.qty + (item.qty || 1),
                     discountType: nextItem.discountType,
                     discountValue: nextItem.discountValue,
+                    buyOneGetOne: item.buyOneGetOne,
                   }
                 : i,
             )
