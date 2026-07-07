@@ -1030,6 +1030,7 @@ function Admin() {
         originalPrice: pf.originalPrice,
         discountBadge: pf.discountBadge,
         isBestSeller: pf.isBestSeller,
+        buyOneGetOne: pf.buyOneGetOne,
         image: primaryImage,
         images: allImages,
         categories: [pf.productType],
