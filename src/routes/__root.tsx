@@ -7,10 +7,14 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { Toaster } from "sonner";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AuthProvider } from "../lib/auth-context";
+import { CartProvider } from "../lib/cart-context";
+import { WishlistProvider } from "../lib/wishlist-context";
 
 function NotFoundComponent() {
   return (
@@ -76,16 +80,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
       { title: "Sashvi Studio — Sarees & Jewellery" },
-      { name: "description", content: "Sashvi Studio — thoughtfully curated sarees, South Indian imitation jewellery, and ready-to-style combos. Styled to Complete You." },
+      {
+        name: "description",
+        content:
+          "Sashvi Studio — thoughtfully curated sarees, South Indian imitation jewellery, and ready-to-style combos. Styled to Complete You.",
+      },
       { name: "author", content: "Sashvi Studio" },
       { property: "og:title", content: "Sashvi Studio — Sarees & Jewellery" },
-      { property: "og:description", content: "Styled to Complete You — luxury ethnic sarees & jewellery." },
+      {
+        property: "og:description",
+        content: "Styled to Complete You — luxury ethnic sarees & jewellery.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: "/sashvi_logo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -109,6 +121,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="top-right" richColors closeButton />
         <Scripts />
       </body>
     </html>
@@ -120,8 +133,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <Outlet />
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -7,6 +7,15 @@ import p6 from "@/assets/p6.jpg";
 import combo from "@/assets/cat-combos.jpg";
 
 export type Category = "sarees" | "jewellery" | "combos";
+export type DiscountType = "none" | "fixed" | "percent";
+
+export type ColorVariant = {
+  id: string;
+  color: string;
+  stock: number;
+  originalPrice: number;
+  salePrice: number;
+};
 
 export interface Product {
   id: string;
@@ -14,15 +23,28 @@ export interface Product {
   name: string;
   price: number;
   compareAt?: number;
+  originalPrice?: number;
+  discountedPrice?: number;
+  discountType?: DiscountType;
+  discountValue?: number;
+  discountPercentage?: number;
+  discountFixed?: number;
+  discountBadge?: string;
   image: string;
   images?: string[];
   categories: Category[];
   tags: string[];
+  stock: number;
   isNew?: boolean;
   isFeatured?: boolean;
+  isBestSelling?: boolean;
+  isBestSeller?: boolean;
+  buyOneGetOne?: boolean;
   rating?: number;
   reviewCount?: number;
   description: string;
+  color?: string;
+  colorVariants?: ColorVariant[];
 }
 
 export const PRODUCTS: Product[] = [
@@ -35,8 +57,10 @@ export const PRODUCTS: Product[] = [
     image: p1,
     categories: ["sarees"],
     tags: ["Mysore Silk Sarees", "Fancy & Designer Sarees"],
+    stock: 4,
     isFeatured: true,
     isNew: true,
+    isBestSelling: true,
     rating: 4.9,
     reviewCount: 124,
     description:
@@ -51,6 +75,7 @@ export const PRODUCTS: Product[] = [
     image: p2,
     categories: ["sarees"],
     tags: ["Mul Cotton Sarees", "Handloom & Artisanal Sarees"],
+    stock: 10,
     isNew: true,
     rating: 4.8,
     reviewCount: 86,
@@ -65,7 +90,9 @@ export const PRODUCTS: Product[] = [
     image: p3,
     categories: ["jewellery"],
     tags: ["Necklaces", "Bridal Sets"],
+    stock: 6,
     isFeatured: true,
+    isBestSelling: true,
     rating: 4.9,
     reviewCount: 212,
     description:
@@ -80,10 +107,12 @@ export const PRODUCTS: Product[] = [
     image: p4,
     categories: ["jewellery"],
     tags: ["Earrings&Jhumkas", "Jewellery Under ₹599"],
+    stock: 0,
     isNew: true,
     rating: 4.7,
     reviewCount: 158,
-    description: "Statement jhumkas with intricate gold work and pearl drops. Versatile across festive and everyday looks.",
+    description:
+      "Statement jhumkas with intricate gold work and pearl drops. Versatile across festive and everyday looks.",
   },
   {
     id: "5",
@@ -93,10 +122,12 @@ export const PRODUCTS: Product[] = [
     image: p5,
     categories: ["sarees"],
     tags: ["Mysore Silk Sarees"],
+    stock: 8,
     isFeatured: true,
     rating: 4.8,
     reviewCount: 91,
-    description: "Pure Mysore silk in regal cobalt blue with a striking gold zari border. Comes with unstitched blouse piece.",
+    description:
+      "Pure Mysore silk in regal cobalt blue with a striking gold zari border. Comes with unstitched blouse piece.",
   },
   {
     id: "6",
@@ -107,11 +138,14 @@ export const PRODUCTS: Product[] = [
     image: p6,
     categories: ["jewellery"],
     tags: ["Jadau kundan jewellery", "Bridal Sets", "Long Haaram"],
+    stock: 2,
     isFeatured: true,
     isNew: true,
+    isBestSelling: true,
     rating: 5.0,
     reviewCount: 47,
-    description: "Heirloom Jadau Kundan necklace set with uncut polki, pearls, and matching earrings. A bridal showstopper.",
+    description:
+      "Heirloom Jadau Kundan necklace set with uncut polki, pearls, and matching earrings. A bridal showstopper.",
   },
   {
     id: "7",
@@ -122,10 +156,13 @@ export const PRODUCTS: Product[] = [
     image: combo,
     categories: ["combos", "sarees"],
     tags: ["Saree & Jewellery Combos", "Mysore Silk Sarees"],
+    stock: 1,
     isFeatured: true,
+    isBestSelling: true,
     rating: 4.9,
     reviewCount: 64,
-    description: "A complete look — pastel pink silk saree paired with matching antique gold jhumkas. Styled to complete you.",
+    description:
+      "A complete look — pastel pink silk saree paired with matching antique gold jhumkas. Styled to complete you.",
   },
   {
     id: "8",
@@ -135,6 +172,7 @@ export const PRODUCTS: Product[] = [
     image: p2,
     categories: ["sarees"],
     tags: ["Sarees Under ₹999", "Mul Cotton Sarees"],
+    stock: 12,
     rating: 4.6,
     reviewCount: 38,
     description: "Lightweight festive mul cotton saree at a beautiful price. A daily favourite.",
@@ -164,8 +202,51 @@ export const JEWELLERY_CATEGORIES = [
 export const COMBO_CATEGORIES = ["Saree & Jewellery Combos", "Buy 1 Get 1 Offers"];
 
 export const formatINR = (n: number) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(n);
 
 export const getProduct = (slug: string) => PRODUCTS.find((p) => p.slug === slug);
 export const byCategory = (cat: Category) => PRODUCTS.filter((p) => p.categories.includes(cat));
 export const byTag = (tag: string) => PRODUCTS.filter((p) => p.tags.includes(tag));
+
+export const sortProducts = (products: Product[], sortOption?: string): Product[] => {
+  if (!sortOption) return products;
+  const items = [...products];
+  switch (sortOption) {
+    case "price-asc":
+      return items.sort((a, b) => a.price - b.price);
+    case "price-desc":
+      return items.sort((a, b) => b.price - a.price);
+    case "newest":
+      return items.sort((a, b) => {
+        if (a.isNew && !b.isNew) return -1;
+        if (!a.isNew && b.isNew) return 1;
+        return parseInt(b.id) - parseInt(a.id);
+      });
+    case "featured":
+      return items.sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        return 0;
+      });
+    case "popularity":
+      return items.sort((a, b) => {
+        if (a.isBestSelling && !b.isBestSelling) return -1;
+        if (!a.isBestSelling && b.isBestSelling) return 1;
+        return (b.reviewCount || 0) - (a.reviewCount || 0);
+      });
+    case "discount":
+      return items.sort((a, b) => {
+        const discountA = a.compareAt && a.compareAt > a.price ? (a.compareAt - a.price) / a.compareAt : 0;
+        const discountB = b.compareAt && b.compareAt > b.price ? (b.compareAt - b.price) / b.compareAt : 0;
+        return discountB - discountA;
+      });
+    case "rating":
+      return items.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    default:
+      return items;
+  }
+};

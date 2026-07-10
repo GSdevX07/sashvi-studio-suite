@@ -1,0 +1,79 @@
+modules = ["nodejs-20", "web"]
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start backend"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd sashvi-studio-suite-main && npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "Start backend"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd sashvi-studio-suite-main/backend && npm run dev"
+waitForPort = 3000
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3001
+
+[userenv]
+
+[userenv.shared]
+ADMIN_EMAIL = "admin@sashvistudio.com"
+VITE_SUPABASE_URL = "https://zzudwxxkwscgiakjiexz.supabase.co"
+IMAGEKIT_PUBLIC_KEY = "public_7AAtMlwbYycz58Vm+ffxsNkbRy4="
+IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/qncajau4w"
+EMAIL_FROM = "Sashvi Studio <orders@sashvistudio.in>"
+VITE_API_BASE_URL = "http://localhost:3000"
+SUPABASE_URL = "https://zzudwxxkwscgiakjiexz.supabase.co"
+VITE_RAZORPAY_KEY_ID = "rzp_test_T55rQZp5yJGszo"
+RAZORPAY_KEY_ID = "rzp_test_T55rQZp5yJGszo"
+VITE_SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6dWR3eHhrd3NjZ2lha2ppZXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NjEwNjUsImV4cCI6MjA5NzIzNzA2NX0.ilqq8p-Wb8o0EMScdqwA3FZel9ja17R3r2FvjWxNuYE"
+JWT_SECRET = "supersecretdevkey"
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "cd sashvi-studio-suite-main && node .output/server/index.mjs"]
+build = ["bash", "-c", "cd sashvi-studio-suite-main && npm run build"]
