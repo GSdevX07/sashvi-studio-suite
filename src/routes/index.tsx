@@ -63,22 +63,8 @@ function Home() {
               Thoughtfully curated sarees, South Indian imitation jewellery, and ready-to-style
               combos — crafted to celebrate craft, tradition, and effortless elegance.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                to="/sarees"
-                className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium uppercase tracking-widest text-background transition hover:bg-accent hover:text-accent-foreground"
-              >
-                Shop Sarees <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/jewellery"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-6 py-3 text-sm font-medium uppercase tracking-widest text-foreground transition hover:border-accent hover:text-accent"
-              >
-                Shop Jewellery
-              </Link>
-            </div>
 
-            <div className="mt-12 grid grid-cols-3 gap-6 border-t border-border pt-6 text-left">
+            <div className="mt-8 grid grid-cols-3 gap-6 border-t border-border pt-6 text-left">
               {[
                 ["500+", "Curated Pieces"],
                 ["4.9★", "Loved by Patrons"],
