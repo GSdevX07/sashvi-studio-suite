@@ -174,7 +174,7 @@ export function buildOrderConfirmationEmail(opts: {
                 <tr>
                   <td style="padding:20px 24px;">
                     <div style="font-size:12px;color:#8b6040;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Shipping Destination</div>
-                    <div style="font-size:14px;color:#3d2b1f;line-height:1.8;">
+                    <div style="font-size:14px;color:#3d2b1f;line-height:1.8;text-align:right;">
                       <strong>${customerName}</strong><br/>
                       ${address}<br/>
                       Contact: ${mobile}
