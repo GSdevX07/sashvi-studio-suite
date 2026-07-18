@@ -158,26 +158,8 @@ function Home() {
         {/* Mobile/Tablet: Original layout */}
         <div className="container-luxe grid items-center gap-6 py-8 sm:py-12 md:hidden">
           <div className="order-2">
-            {/* CTA Buttons */}
-            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 mb-8 sm:mb-10">
-              <Link
-                to="/sarees"
-                className="w-[140px] sm:w-[320px] h-10 sm:h-14 rounded-full flex items-center justify-between px-3 sm:px-6 font-semibold tracking-wider text-white transition-all hover:-translate-y-1 hover:shadow-lg text-[10px] sm:text-base"
-                style={{ backgroundColor: '#4A2B24', letterSpacing: '0.5px sm:1.5px' }}
-              >
-                SHOP SAREES <ArrowRight className="h-3 w-3 sm:h-5 sm:w-5" />
-              </Link>
-              <Link
-                to="/jewellery"
-                className="w-[150px] sm:w-[320px] h-10 sm:h-14 rounded-full flex items-center justify-between px-3 sm:px-6 font-semibold tracking-wider transition-all hover:-translate-y-1 hover:shadow-lg text-[10px] sm:text-base"
-                style={{ backgroundColor: 'white', border: '1.5px solid #4A2B24', color: '#4A2B24', letterSpacing: '0.5px sm:1.5px' }}
-              >
-                SHOP JEWELLERY <ArrowRight className="h-3 w-3 sm:h-5 sm:w-5" />
-              </Link>
-            </div>
-
             {/* Brand Introduction */}
-            <div className="text-center mb-6 sm:mb-10">
+            <div className="text-center mb-6 sm:mb-8">
               <div className="flex items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-6">
                 <span style={{ color: '#C79A42', fontSize: '12px sm:text-xl' }}>✦</span>
                 <span className="uppercase tracking-widest" style={{ color: '#C79A42', fontSize: '10px sm:text-[15px]', letterSpacing: '2px sm:tracking-widest' }}>
@@ -276,27 +258,9 @@ function Home() {
         </div>
 
         {/* Desktop: Content below banner */}
-        <div className="hidden md:block container-luxe py-6">
-          {/* CTA Buttons */}
-          <div className="flex flex-row items-center justify-center gap-4 mb-10">
-            <Link
-              to="/sarees"
-              className="w-[320px] h-14 rounded-full flex items-center justify-between px-6 font-semibold tracking-wider text-white transition-all hover:-translate-y-1 hover:shadow-lg text-base"
-              style={{ backgroundColor: '#4A2B24', letterSpacing: '1.5px' }}
-            >
-              SHOP SAREES <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
-              to="/jewellery"
-              className="w-[320px] h-14 rounded-full flex items-center justify-between px-6 font-semibold tracking-wider transition-all hover:-translate-y-1 hover:shadow-lg text-base"
-              style={{ backgroundColor: 'white', border: '1.5px solid #4A2B24', color: '#4A2B24', letterSpacing: '1.5px' }}
-            >
-              SHOP JEWELLERY <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-
+        <div className="hidden md:block container-luxe pt-2 pb-6">
           {/* Brand Introduction */}
-          <div className="text-left mb-10">
+          <div className="text-left mb-8">
             <div className="flex items-center justify-start gap-4 mb-6">
               <span style={{ color: '#C79A42', fontSize: '20px' }}>✦</span>
               <span className="uppercase tracking-widest" style={{ color: '#C79A42', fontSize: '15px', letterSpacing: 'tracking-widest' }}>
