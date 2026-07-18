@@ -12,6 +12,7 @@ import { useCatalogProducts } from "@/lib/catalog";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
+import { hasProductDiscount, normalizeDiscountFields } from "@/lib/discount";
 
 const NAV = [
   { label: "Home", to: "/" },
@@ -333,32 +334,54 @@ export function Header() {
                       </div>
                     ) : (
                       <div className="grid gap-1">
-                        {searchResults.map((product) => (
-                          <Link
-                            key={product.id}
-                            to="/product/$slug"
-                            params={{ slug: product.slug }}
-                            onClick={() => setSearchOpen(false)}
-                            className="flex items-center gap-4 rounded-2xl p-3 transition hover:bg-secondary/60"
-                          >
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="h-16 w-16 shrink-0 rounded-xl border border-border/50 object-cover"
-                            />
-                            <div className="flex min-w-0 flex-1 flex-col justify-center">
-                              <div className="truncate text-[0.95rem] font-medium text-foreground">
-                                {product.name}
+                        {searchResults.map((product) => {
+                          const discount = normalizeDiscountFields(product);
+                          let salePrice = product.price;
+                          let originalPrice = product.price;
+                          if (hasProductDiscount(product) && discount.discountType !== "none" && discount.discountValue > 0) {
+                            originalPrice = product.price;
+                            if (discount.discountType === "fixed") {
+                              salePrice = Math.max(0, product.price - discount.discountValue);
+                            } else if (discount.discountType === "percent") {
+                              salePrice = Math.max(0, product.price - (product.price * discount.discountValue / 100));
+                            }
+                          }
+                          const hasDiscount = salePrice !== originalPrice;
+
+                          return (
+                            <Link
+                              key={product.id}
+                              to="/product/$slug"
+                              params={{ slug: product.slug }}
+                              onClick={() => setSearchOpen(false)}
+                              className="flex items-center gap-4 rounded-2xl p-3 transition hover:bg-secondary/60"
+                            >
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="h-16 w-16 shrink-0 rounded-xl border border-border/50 object-cover"
+                              />
+                              <div className="flex min-w-0 flex-1 flex-col justify-center">
+                                <div className="truncate text-[0.95rem] font-medium text-foreground">
+                                  {product.name}
+                                </div>
+                                <div className="mb-1 mt-0.5 text-xs capitalize text-muted-foreground">
+                                  {product.categories[0]}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="text-sm font-medium text-foreground">
+                                    {formatINR(salePrice)}
+                                  </div>
+                                  {hasDiscount && (
+                                    <div className="text-xs text-muted-foreground line-through">
+                                      {formatINR(originalPrice)}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <div className="mb-1 mt-0.5 text-xs capitalize text-muted-foreground">
-                                {product.categories[0]}
-                              </div>
-                              <div className="text-sm font-medium text-foreground">
-                                {formatINR(product.price)}
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
+                            </Link>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
