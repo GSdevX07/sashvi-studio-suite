@@ -86,6 +86,7 @@ function ProductPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewForm, setReviewForm] = useState({ rating: 5, review_text: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [editingReview, setEditingReview] = useState<string | null>(null);
   
   // Call hooks at the top level - no conditional hooks
   const category = fallback?.categories?.[0];
@@ -211,6 +212,46 @@ function ProductPage() {
     }
   };
 
+  // Edit review
+  const handleEditReview = async (reviewId: string) => {
+    const token = getAuthToken();
+    if (!token) {
+      toast.error("Please login to edit a review");
+      return;
+    }
+
+    if (!reviewForm.review_text.trim()) {
+      toast.error("Please write a review");
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const res = await apiJson<{ review: any }>(
+        `/reviews/${reviewId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            rating: reviewForm.rating,
+            review_text: reviewForm.review_text,
+          }),
+        },
+        true,
+      );
+
+      if (res.review) {
+        setReviews(reviews.map((r) => r.id === reviewId ? res.review : r));
+        setReviewForm({ rating: 5, review_text: "" });
+        setEditingReview(null);
+        toast.success("Review updated successfully");
+      }
+    } catch (err: any) {
+      toast.error("Failed to update review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   // Delete review
   const handleDeleteReview = async (reviewId: string) => {
     const token = getAuthToken();
@@ -234,6 +275,21 @@ function ProductPage() {
         toast.error("Failed to delete review");
       }
     }
+  };
+
+  // Start editing review
+  const startEditReview = (review: any) => {
+    setEditingReview(review.id);
+    setReviewForm({
+      rating: review.rating,
+      review_text: review.review_text
+    });
+  };
+
+  // Cancel editing
+  const cancelEditReview = () => {
+    setEditingReview(null);
+    setReviewForm({ rating: 5, review_text: "" });
   };
 
   // Conditional returns AFTER all hooks
@@ -547,7 +603,9 @@ function ProductPage() {
 
         {/* Review Submission Form */}
         <div className="mb-8 rounded-2xl border border-border bg-card p-6">
-          <h3 className="mb-4 font-medium text-lg">Write a Review</h3>
+          <h3 className="mb-4 font-medium text-lg">
+            {editingReview ? "Edit Your Review" : "Write a Review"}
+          </h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">Rating</label>
@@ -575,13 +633,23 @@ function ProductPage() {
                 placeholder="Share your experience with this product..."
               />
             </div>
-            <button
-              onClick={handleSubmitReview}
-              disabled={submittingReview}
-              className="rounded-full bg-foreground px-6 py-2.5 text-sm font-medium uppercase tracking-widest text-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submittingReview ? "Submitting..." : "Submit Review"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={editingReview ? () => handleEditReview(editingReview) : handleSubmitReview}
+                disabled={submittingReview}
+                className="rounded-full bg-foreground px-6 py-2.5 text-sm font-medium uppercase tracking-widest text-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submittingReview ? "Submitting..." : editingReview ? "Update Review" : "Submit Review"}
+              </button>
+              {editingReview && (
+                <button
+                  onClick={cancelEditReview}
+                  className="rounded-full border border-border px-6 py-2.5 text-sm font-medium uppercase tracking-widest text-foreground hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -611,13 +679,24 @@ function ProductPage() {
                       {new Date(review.created_at).toLocaleDateString()}
                     </div>
                     {isLoggedIn && userId === review.user_id && (
-                      <button
-                        onClick={() => handleDeleteReview(review.id)}
-                        className="text-muted-foreground hover:text-destructive transition"
-                        title="Delete review"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => startEditReview(review)}
+                          className="text-muted-foreground hover:text-accent transition"
+                          title="Edit review"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(review.id)}
+                          className="text-muted-foreground hover:text-destructive transition"
+                          title="Delete review"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -36,16 +36,26 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
       return;
     }
     
-    // If product has color variants, redirect to product page for selection
-    if (product.colorVariants && product.colorVariants.length > 0) {
+    // If product has multiple color variants, redirect to product page for selection
+    if (product.colorVariants && product.colorVariants.length > 1) {
       navigate({ to: "/product/$slug", params: { slug: product.slug } });
       return;
+    }
+    
+    // If single color variant, select it automatically
+    let selectedVariantId = undefined;
+    let selectedColor = undefined;
+    if (product.colorVariants && product.colorVariants.length === 1) {
+      selectedVariantId = product.colorVariants[0].id;
+      selectedColor = product.colorVariants[0].color;
     }
     
     console.log('ProductCard - Adding to cart:', {
       productName: product.name,
       buyOneGetOne: product.buyOneGetOne,
-      productFull: product
+      productFull: product,
+      selectedVariantId,
+      selectedColor
     });
     addItem({
       id: product.id,
@@ -55,6 +65,8 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
       qty: 1,
       discountType: discount.discountType,
       discountValue: discount.discountValue,
+      variant_id: selectedVariantId,
+      selected_color: selectedColor,
       buyOneGetOne: product.buyOneGetOne,
     });
   }

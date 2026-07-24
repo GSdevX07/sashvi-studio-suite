@@ -108,22 +108,53 @@ reviewsRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
 });
 
 // Update review status (admin only)
-reviewsRouter.patch("/:id", requireAdmin as any, async (req: AuthedRequest, res) => {
-  const id = req.params.id;
-  const body = req.body;
-  const updates: Record<string, unknown> = {};
-  if (body.status != null) updates.verified = body.status === "Approved";
-  if (body.featured != null) updates.featured = body.featured;
+reviewsRouter.patch("/:id", requireAuth as any, async (req: AuthedRequest, res) => {
+  try {
+    const id = req.params.id;
+    const body = req.body;
+    const updates: Record<string, unknown> = {};
+    
+    // If rating and review_text are provided, it's a user editing their own review
+    if (body.rating !== undefined && body.review_text !== undefined) {
+      // Check if user is admin or review owner
+      const { data: review } = await supabase
+        .from("reviews")
+        .select("user_id")
+        .eq("id", id)
+        .single();
 
-  const { data, error } = await supabase
-    .from("reviews")
-    .update(updates)
-    .eq("id", id)
-    .select("id, user_name, product_id, rating, review_text, verified, featured, created_at")
-    .maybeSingle();
+      if (!review) {
+        return res.status(404).json({ error: "review_not_found" });
+      }
 
-  if (error) return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
-  return res.json({ review: data ? mapReview(data as Record<string, unknown>) : { id } });
+      const isAdmin = req.user.role === "admin";
+      const isOwner = review.user_id === req.user.id;
+
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ error: "forbidden" });
+      }
+
+      updates.rating = body.rating;
+      updates.review_text = body.review_text;
+    } else {
+      // Admin updating status/featured
+      if (body.status != null) updates.verified = body.status === "Approved";
+      if (body.featured != null) updates.featured = body.featured;
+    }
+
+    const { data, error } = await supabase
+      .from("reviews")
+      .update(updates)
+      .eq("id", id)
+      .select("id, user_id, user_name, product_id, rating, review_text, verified, featured, created_at")
+      .maybeSingle();
+
+    if (error) return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
+    return res.json({ review: data ? mapReview(data as Record<string, unknown>) : { id } });
+  } catch (err) {
+    console.error("Review PATCH error:", err);
+    return res.status(500).json({ error: "server_error", detail: String(err) });
+  }
 });
 
 // Delete a review (admin or review owner)
