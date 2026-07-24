@@ -45,6 +45,7 @@ reviewsRouter.get("/product/:productId", async (req, res) => {
       console.error("Reviews GET error:", error);
       return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
     }
+    console.log('Reviews fetched:', data?.map(r => ({ id: r.id, user_id: r.user_id, user_name: r.user_name })));
     res.setHeader("Cache-Control", "no-store");
     return res.json({ reviews: data ?? [] });
   } catch (err) {
