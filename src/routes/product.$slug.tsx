@@ -246,7 +246,11 @@ function ProductPage() {
         toast.success("Review updated successfully");
       }
     } catch (err: any) {
-      toast.error("Failed to update review");
+      if (err?.error === "already_edited") {
+        toast.error("You can only edit a review once");
+      } else {
+        toast.error("Failed to update review");
+      }
     } finally {
       setSubmittingReview(false);
     }
@@ -684,20 +688,23 @@ function ProductPage() {
                         userId,
                         reviewUserId: review.user_id,
                         matches: userId === review.user_id,
+                        hasEdited: review.has_edited,
                         review
                       });
                       return isLoggedIn && userId === review.user_id;
                     })() && (
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => startEditReview(review)}
-                          className="text-muted-foreground hover:text-accent transition"
-                          title="Edit review"
-                        >
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
+                        {!review.has_edited && (
+                          <button
+                            onClick={() => startEditReview(review)}
+                            className="text-muted-foreground hover:text-accent transition"
+                            title="Edit review"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteReview(review.id)}
                           className="text-muted-foreground hover:text-destructive transition"

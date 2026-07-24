@@ -37,7 +37,7 @@ reviewsRouter.get("/product/:productId", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("reviews")
-      .select("id, user_id, user_name, product_id, rating, review_text, verified, featured, created_at")
+      .select("id, user_id, user_name, product_id, rating, review_text, verified, featured, has_edited, created_at")
       .eq("product_id", req.params.productId)
       .eq("verified", true)
       .order("created_at", { ascending: false });
@@ -45,11 +45,30 @@ reviewsRouter.get("/product/:productId", async (req, res) => {
       console.error("Reviews GET error:", error);
       return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
     }
-    console.log('Reviews fetched:', data?.map(r => ({ id: r.id, user_id: r.user_id, user_name: r.user_name })));
+    console.log('Reviews fetched:', data?.map(r => ({ id: r.id, user_id: r.user_id, user_name: r.user_name, has_edited: r.has_edited })));
     res.setHeader("Cache-Control", "no-store");
     return res.json({ reviews: data ?? [] });
   } catch (err) {
     console.error("Reviews GET unexpected error:", err);
+    return res.status(500).json({ error: "server_error", detail: String(err) });
+  }
+});
+
+// Get current user's reviews
+reviewsRouter.get("/my-reviews", requireAuth as any, async (req: AuthedRequest, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("id, product_id, user_id, user_name, rating, review_text, verified, featured, has_edited, created_at")
+      .eq("user_id", req.user.id)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("My reviews GET error:", error);
+      return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
+    }
+    return res.json({ reviews: data ?? [] });
+  } catch (err) {
+    console.error("My reviews GET unexpected error:", err);
     return res.status(500).json({ error: "server_error", detail: String(err) });
   }
 });
@@ -120,7 +139,7 @@ reviewsRouter.patch("/:id", requireAuth as any, async (req: AuthedRequest, res) 
       // Check if user is admin or review owner
       const { data: review } = await supabase
         .from("reviews")
-        .select("user_id")
+        .select("user_id, has_edited")
         .eq("id", id)
         .single();
 
@@ -135,8 +154,14 @@ reviewsRouter.patch("/:id", requireAuth as any, async (req: AuthedRequest, res) 
         return res.status(403).json({ error: "forbidden" });
       }
 
+      // Check if review has already been edited (only one edit allowed)
+      if (!isAdmin && review.has_edited) {
+        return res.status(400).json({ error: "already_edited", message: "You can only edit a review once" });
+      }
+
       updates.rating = body.rating;
       updates.review_text = body.review_text;
+      updates.has_edited = true; // Mark as edited
     } else {
       // Admin updating status/featured
       if (body.status != null) updates.verified = body.status === "Approved";
@@ -147,7 +172,7 @@ reviewsRouter.patch("/:id", requireAuth as any, async (req: AuthedRequest, res) 
       .from("reviews")
       .update(updates)
       .eq("id", id)
-      .select("id, user_id, user_name, product_id, rating, review_text, verified, featured, created_at")
+      .select("id, user_id, user_name, product_id, rating, review_text, verified, featured, has_edited, created_at")
       .maybeSingle();
 
     if (error) return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });

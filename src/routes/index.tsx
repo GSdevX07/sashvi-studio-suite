@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, Star, Sparkles, Play, ChevronDown, ShoppingBag, Truck, Shield, Gem, Flower2 } from "lucide-react";
+import { ArrowRight, Star, Sparkles, Play, ChevronDown, ShoppingBag, Truck, Shield, Gem, Flower2, Trash2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
-import { formatINR } from "@/lib/products";
+import { formatINR, PRODUCTS } from "@/lib/products";
 import { useCatalogProducts } from "@/lib/catalog";
 import { useRealtime } from "@/lib/realtime-context";
+import { useAuth } from "@/lib/auth-context";
 import { BRAND } from "@/lib/contact";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import { HandloomEdit } from "@/components/HandloomEdit";
+import { apiJson } from "@/lib/backend";
+import { toast } from "sonner";
 import type { InstagramFeedItem } from "@/lib/instagram";
 import hero from "/saree_hero_banner.png";
 import catSarees from "/saree-category.jpeg";
@@ -70,8 +73,10 @@ function SectionHeading({
 function Home() {
   const { products } = useCatalogProducts();
   const { instagramFeedVersion } = useRealtime();
+  const { isLoggedIn } = useAuth();
   const [instagramFeed, setInstagramFeed] = useState<InstagramFeedItem[]>([]);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [myReviews, setMyReviews] = useState<any[]>([]);
   const reviewsScrollRef = useRef<HTMLDivElement>(null);
   const newArrivals = products.filter((p) => p.isNew).slice(0, 6);
   const featured = products.filter((p) => p.isFeatured).slice(0, 4);
@@ -137,6 +142,21 @@ function Home() {
         setInstagramFeed([]);
       });
   }, [instagramFeedVersion]);
+
+  // Fetch user's reviews when logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setMyReviews([]);
+      return;
+    }
+
+    apiJson<{ reviews: any[] }>("/reviews/my-reviews", {}, true)
+      .then((res) => setMyReviews(res.reviews || []))
+      .catch((err) => {
+        console.error('Failed to fetch reviews:', err);
+        setMyReviews([]);
+      });
+  }, [isLoggedIn]);
 
   return (
     <Layout>
@@ -482,6 +502,86 @@ function Home() {
           ))}
         </div>
       </section>
+
+      {/* MY REVIEWS - Only shown when logged in */}
+      {isLoggedIn && myReviews.length > 0 && (
+        <section className="container-luxe py-8 sm:py-12">
+          <SectionHeading eyebrow="Your Reviews" title="My Reviews" link="/my-account" linkLabel="View all" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            {myReviews.slice(0, 3).map((review) => {
+              const product = PRODUCTS.find((p) => p.id === review.product_id);
+              return (
+                <div
+                  key={review.id}
+                  className="rounded-[1.5rem] border border-border bg-card p-6"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <Link
+                        to="/product/$slug"
+                        params={{ slug: product?.slug || "" }}
+                        className="font-medium hover:text-accent transition"
+                      >
+                        {product?.name || "Product"}
+                      </Link>
+                      <div className="flex items-center gap-1 mt-2">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${i < review.rating ? "fill-yellow-500 text-yellow-500" : "text-gray-300"}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!review.has_edited && (
+                          <button
+                            onClick={() => {
+                              window.location.href = `/product/${product?.slug || ""}`;
+                            }}
+                            className="text-muted-foreground hover:text-accent transition"
+                            title="Edit review"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (confirm("Are you sure you want to delete this review?")) {
+                              apiJson(`/reviews/${review.id}`, { method: "DELETE" }, true)
+                                .then(() => {
+                                  setMyReviews(myReviews.filter((r) => r.id !== review.id));
+                                  toast.success("Review deleted successfully");
+                                })
+                                .catch(() => toast.error("Failed to delete review"));
+                            }
+                          }}
+                          className="text-muted-foreground hover:text-destructive transition"
+                          title="Delete review"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-foreground/80">{review.review_text}</p>
+                  {review.has_edited && (
+                    <div className="mt-2 text-xs text-muted-foreground italic">
+                      (Edited)
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <InstagramFeed feed={instagramFeed} />
 

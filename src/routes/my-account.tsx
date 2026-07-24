@@ -18,11 +18,12 @@ import {
   Download,
   CheckCircle2,
   FileText,
+  Trash2,
 } from "lucide-react";
 import { formatINR, PRODUCTS } from "@/lib/products";
 import { useCart } from "@/lib/cart-context";
 
-type Search = { redirect?: string; tab?: "dashboard" | "orders" | "saved" };
+type Search = { redirect?: string; tab?: "dashboard" | "orders" | "saved" | "reviews" };
 
 // Helper functions for order action button visibility
 function canCancelOrder(status: string): boolean {
@@ -209,7 +210,7 @@ function OrderActionModals({
 export const Route = createFileRoute("/my-account")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     redirect: typeof s.redirect === "string" ? s.redirect : undefined,
-    tab: (s.tab === "dashboard" || s.tab === "orders" || s.tab === "saved") ? s.tab : undefined,
+    tab: (s.tab === "dashboard" || s.tab === "orders" || s.tab === "saved" || s.tab === "reviews") ? s.tab : undefined,
   }),
   head: () => ({ meta: [{ title: "My Account — Sashvi Studio" }] }),
   component: MyAccountPage,
@@ -233,11 +234,12 @@ function MyAccountPage() {
   const [error, setError] = useState<string | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "orders" | "saved">(
+  const [activeTab, setActiveTab] = useState<"dashboard" | "orders" | "saved" | "reviews">(
     tab || "dashboard",
   );
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [orders, setOrders] = useState<any[]>([]);
+  const [myReviews, setMyReviews] = useState<any[]>([]);
 
   // Track realtime unsubscribe function across renders
   const realtimeUnsubRef = useRef<(() => void) | null>(null);
@@ -349,7 +351,7 @@ function MyAccountPage() {
     }
   };
 
-  // Single consolidated effect: fetch profile + orders when logged in
+  // Single consolidated effect: fetch profile + orders + reviews when logged in
   useEffect(() => {
     if (!isLoggedIn) return;
 
@@ -364,6 +366,12 @@ function MyAccountPage() {
           logout();
           navigate({ to: "/my-account" });
         }
+      });
+
+    apiJson<{ reviews: any[] }>("/reviews/my-reviews", {}, true)
+      .then((res) => setMyReviews(res.reviews || []))
+      .catch((err) => {
+        console.error('Failed to fetch reviews:', err);
       });
   }, [isLoggedIn, ordersVersion]);
 
@@ -711,6 +719,7 @@ function MyAccountPage() {
                 { id: "dashboard", label: "Dashboard", icon: User },
                 { id: "orders", label: "My Orders", icon: Package },
                 { id: "saved", label: "Saved for Later", icon: Heart },
+                { id: "reviews", label: "My Reviews", icon: Star },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -976,6 +985,92 @@ function MyAccountPage() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "reviews" && (
+                <div className="space-y-6">
+                  <h2 className="font-display text-2xl">My Reviews</h2>
+                  {myReviews.length === 0 ? (
+                    <div className="text-center py-12 rounded-2xl border border-border bg-card">
+                      <Star className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                      <p className="text-muted-foreground">You haven't written any reviews yet.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {myReviews.map((review) => {
+                        const product = PRODUCTS.find((p) => p.id === review.product_id);
+                        return (
+                          <div
+                            key={review.id}
+                            className="rounded-[1.5rem] border border-border bg-card p-6"
+                          >
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex-1">
+                                <Link
+                                  to="/product/$slug"
+                                  params={{ slug: product?.slug || "" }}
+                                  className="font-medium hover:text-accent transition"
+                                >
+                                  {product?.name || "Product"}
+                                </Link>
+                                <div className="flex items-center gap-1 mt-2">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-4 w-4 ${i < review.rating ? "fill-yellow-500 text-yellow-500" : "text-gray-300"}`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="text-xs text-muted-foreground">
+                                  {new Date(review.created_at).toLocaleDateString()}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {!review.has_edited && (
+                                    <button
+                                      onClick={() => {
+                                        navigate({ to: "/product/$slug", params: { slug: product?.slug || "" } });
+                                      }}
+                                      className="text-muted-foreground hover:text-accent transition"
+                                      title="Edit review"
+                                    >
+                                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      if (confirm("Are you sure you want to delete this review?")) {
+                                        apiJson(`/reviews/${review.id}`, { method: "DELETE" }, true)
+                                          .then(() => {
+                                            setMyReviews(myReviews.filter((r) => r.id !== review.id));
+                                            toast.success("Review deleted successfully");
+                                          })
+                                          .catch(() => toast.error("Failed to delete review"));
+                                      }
+                                    }}
+                                    className="text-muted-foreground hover:text-destructive transition"
+                                    title="Delete review"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-sm text-foreground/80">{review.review_text}</p>
+                            {review.has_edited && (
+                              <div className="mt-2 text-xs text-muted-foreground italic">
+                                (Edited)
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
