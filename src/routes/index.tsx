@@ -509,7 +509,8 @@ function Home() {
           <SectionHeading eyebrow="Your Reviews" title="My Reviews" link="/my-account" linkLabel="View all" />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {myReviews.slice(0, 3).map((review) => {
-              const product = PRODUCTS.find((p) => p.id === review.product_id);
+              const productName = review.products?.name || "Product";
+              const productSlug = review.products?.slug;
               return (
                 <div
                   key={review.id}
@@ -517,13 +518,17 @@ function Home() {
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <Link
-                        to="/product/$slug"
-                        params={{ slug: product?.slug || "" }}
-                        className="font-medium hover:text-accent transition"
-                      >
-                        {product?.name || "Product"}
-                      </Link>
+                      {productSlug ? (
+                        <Link
+                          to="/product/$slug"
+                          params={{ slug: productSlug }}
+                          className="font-medium hover:text-accent transition"
+                        >
+                          {productName}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">{productName}</span>
+                      )}
                       <div className="flex items-center gap-1 mt-2">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
@@ -538,10 +543,10 @@ function Home() {
                         {new Date(review.created_at).toLocaleDateString()}
                       </div>
                       <div className="flex items-center gap-2">
-                        {!review.has_edited && (
+                        {!review.has_edited && productSlug && (
                           <button
                             onClick={() => {
-                              window.location.href = `/product/${product?.slug || ""}`;
+                              window.location.href = `/product/${productSlug}`;
                             }}
                             className="text-muted-foreground hover:text-accent transition"
                             title="Edit review"

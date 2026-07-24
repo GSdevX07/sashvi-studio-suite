@@ -59,13 +59,14 @@ reviewsRouter.get("/my-reviews", requireAuth as any, async (req: AuthedRequest, 
   try {
     const { data, error } = await supabase
       .from("reviews")
-      .select("id, product_id, user_id, user_name, rating, review_text, verified, featured, has_edited, created_at")
+      .select("id, product_id, user_id, user_name, rating, review_text, verified, featured, has_edited, created_at, products(name, slug)")
       .eq("user_id", req.user.id)
       .order("created_at", { ascending: false });
     if (error) {
       console.error("My reviews GET error:", error);
       return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
     }
+    console.log('My reviews fetched:', data?.map((r: any) => ({ id: r.id, product_id: r.product_id, product_name: r.products?.name, product_slug: r.products?.slug })));
     return res.json({ reviews: data ?? [] });
   } catch (err) {
     console.error("My reviews GET unexpected error:", err);
