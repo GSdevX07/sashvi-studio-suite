@@ -8,7 +8,6 @@ import {
   Star,
   Truck,
   ShieldCheck,
-  RefreshCw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
@@ -75,6 +74,7 @@ function ProductPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [stock, setStock] = useState<number>(999);
   const [selectedColor, setSelectedColor] = useState<string>("");
+  const [touchStart, setTouchStart] = useState<number | null>(null);
   const { productsVersion } = useRealtime();
   const { addItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
@@ -310,7 +310,22 @@ function ProductPage() {
               </button>
             ))}
           </div>
-          <div className="order-1 overflow-hidden rounded-[1.5rem] ring-1 ring-border md:order-2 relative">
+          <div className="order-1 overflow-hidden rounded-[1.5rem] ring-1 ring-border md:order-2 relative"
+               onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+               onTouchMove={(e) => {
+                 if (touchStart === null) return;
+                 const touchEnd = e.touches[0].clientX;
+                 const diff = touchStart - touchEnd;
+                 if (Math.abs(diff) > 50) {
+                   if (diff > 0) {
+                     setActiveImg((i) => (i === images.length - 1 ? 0 : i + 1));
+                   } else {
+                     setActiveImg((i) => (i === 0 ? images.length - 1 : i - 1));
+                   }
+                   setTouchStart(null);
+                 }
+               }}
+               onTouchEnd={() => setTouchStart(null)}>
             <img
               src={images[activeImg]}
               alt={product.name}
@@ -328,23 +343,6 @@ function ProductPage() {
                 {discountBadge}
               </span>
             ) : null}
-            {/* Navigation arrows */}
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={() => setActiveImg((i) => (i === 0 ? images.length - 1 : i - 1))}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-white/80 hover:bg-white shadow-lg transition"
-                >
-                  <RefreshCw className="h-5 w-5 rotate-180" />
-                </button>
-                <button
-                  onClick={() => setActiveImg((i) => (i === images.length - 1 ? 0 : i + 1))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-white/80 hover:bg-white shadow-lg transition"
-                >
-                  <RefreshCw className="h-5 w-5" />
-                </button>
-              </>
-            )}
           </div>
         </div>
 
