@@ -688,11 +688,11 @@ function ProductPage() {
                         isLoggedIn,
                         userId,
                         reviewUserId: review.user_id,
-                        matches: userId === review.user_id,
+                        matches: String(userId) === String(review.user_id),
                         hasEdited: review.has_edited,
                         review
                       });
-                      return isLoggedIn && userId === review.user_id;
+                      return isLoggedIn && String(userId) === String(review.user_id);
                     })() && (
                       <div className="flex items-center gap-2">
                         {!review.has_edited && (
