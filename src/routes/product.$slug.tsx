@@ -154,7 +154,12 @@ function ProductPage() {
       .catch(() => {
         setReviews([]);
       });
-  }, [product]);
+  }, [product, productsVersion]);
+
+  // Calculate average rating from reviews
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+    : (product?.rating || 5);
 
   // Submit review
   const handleSubmitReview = async () => {
@@ -323,6 +328,23 @@ function ProductPage() {
                 {discountBadge}
               </span>
             ) : null}
+            {/* Navigation arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setActiveImg((i) => (i === 0 ? images.length - 1 : i - 1))}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-white/80 hover:bg-white shadow-lg transition"
+                >
+                  <RefreshCw className="h-5 w-5 rotate-180" />
+                </button>
+                <button
+                  onClick={() => setActiveImg((i) => (i === images.length - 1 ? 0 : i + 1))}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-white/80 hover:bg-white shadow-lg transition"
+                >
+                  <RefreshCw className="h-5 w-5" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -335,12 +357,12 @@ function ProductPage() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-4 w-4 ${i < Math.round(product.rating ?? 5) ? "fill-current" : ""}`}
+                  className={`h-4 w-4 ${i < Math.round(averageRating) ? "fill-current" : ""}`}
                 />
               ))}
             </div>
             <span className="text-xs text-muted-foreground">
-              {product.rating?.toFixed(1)} · {product.reviewCount} reviews
+              {averageRating.toFixed(1)} · {reviews.length} reviews
             </span>
           </div>
 

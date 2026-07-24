@@ -85,7 +85,7 @@ reviewsRouter.post("/", requireAuth as any, async (req: AuthedRequest, res) => {
         user_name: userData.name || "Customer",
         rating,
         review_text,
-        verified: false, // Reviews need admin approval
+        verified: true, // Auto-verify reviews for immediate display
       })
       .select()
       .single();
