@@ -37,7 +37,7 @@ reviewsRouter.get("/product/:productId", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("reviews")
-      .select("id, user_name, product_id, rating, review_text, verified, featured, created_at")
+      .select("id, user_id, user_name, product_id, rating, review_text, verified, featured, created_at")
       .eq("product_id", req.params.productId)
       .eq("verified", true)
       .order("created_at", { ascending: false });

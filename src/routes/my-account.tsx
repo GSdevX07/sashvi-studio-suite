@@ -1009,6 +1009,7 @@ function MyAccountPage() {
           body: JSON.stringify({ email, password }),
         });
         setAuthTokens(data.access, data.refresh);
+        console.log('Login response:', data);
         login(data.user?.id);
         if (redirect) {
           navigate({ to: redirect as "/cart" | "/wishlist" });

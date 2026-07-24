@@ -24,7 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem(AUTH_STORAGE_KEY);
     const storedUserId = localStorage.getItem("user_id");
     setIsLoggedIn(!!token);
-    setUserId(storedUserId);
+    setUserId(storedUserId || null);
+    console.log('Auth context initialized:', { isLoggedIn: !!token, userId: storedUserId });
   }, []);
 
   const login = useCallback((id?: string) => {
