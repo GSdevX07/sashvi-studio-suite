@@ -35,6 +35,13 @@ export function ProductCard({ product, showRemove, stock }: { product: Product; 
       navigate({ to: "/my-account" });
       return;
     }
+    
+    // If product has color variants, redirect to product page for selection
+    if (product.colorVariants && product.colorVariants.length > 0) {
+      navigate({ to: "/product/$slug", params: { slug: product.slug } });
+      return;
+    }
+    
     console.log('ProductCard - Adding to cart:', {
       productName: product.name,
       buyOneGetOne: product.buyOneGetOne,
