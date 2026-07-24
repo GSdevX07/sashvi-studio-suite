@@ -8,6 +8,7 @@ import {
   Star,
   Truck,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
@@ -17,6 +18,7 @@ import { fetchProductBySlug, useCatalogProducts } from "@/lib/catalog";
 import { BRAND, waLink } from "@/lib/contact";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
+import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { apiJson, getAuthToken } from "@/lib/backend";
 import { useRealtime } from "@/lib/realtime-context";
@@ -78,6 +80,7 @@ function ProductPage() {
   const { productsVersion } = useRealtime();
   const { addItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
+  const { isLoggedIn, userId } = useAuth();
 
   // Reviews state
   const [reviews, setReviews] = useState<any[]>([]);
@@ -205,6 +208,31 @@ function ProductPage() {
       }
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  // Delete review
+  const handleDeleteReview = async (reviewId: string) => {
+    const token = getAuthToken();
+    if (!token) {
+      toast.error("Please login to delete a review");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this review?")) {
+      return;
+    }
+
+    try {
+      await apiJson(`/reviews/${reviewId}`, { method: "DELETE" }, true);
+      setReviews(reviews.filter((r) => r.id !== reviewId));
+      toast.success("Review deleted successfully");
+    } catch (err: any) {
+      if (err?.error === "forbidden") {
+        toast.error("You can only delete your own reviews");
+      } else {
+        toast.error("Failed to delete review");
+      }
     }
   };
 
@@ -578,8 +606,19 @@ function ProductPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(review.created_at).toLocaleDateString()}
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(review.created_at).toLocaleDateString()}
+                    </div>
+                    {isLoggedIn && userId === review.user_id && (
+                      <button
+                        onClick={() => handleDeleteReview(review.id)}
+                        className="text-muted-foreground hover:text-destructive transition"
+                        title="Delete review"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <p className="text-sm text-foreground/80">{review.review_text}</p>

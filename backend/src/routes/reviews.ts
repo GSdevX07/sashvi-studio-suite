@@ -8,6 +8,7 @@ export const reviewsRouter = express.Router();
 function mapReview(r: Record<string, unknown>) {
   return {
     id: String(r.id ?? ""),
+    user_id: String(r.user_id ?? ""),
     user_name: String(r.user_name ?? ""),
     product_id: String(r.product_id ?? ""),
     rating: Number(r.rating ?? 5),
@@ -125,9 +126,33 @@ reviewsRouter.patch("/:id", requireAdmin as any, async (req: AuthedRequest, res)
   return res.json({ review: data ? mapReview(data as Record<string, unknown>) : { id } });
 });
 
-// Delete a review (admin only)
-reviewsRouter.delete("/:id", requireAdmin as any, async (req: AuthedRequest, res) => {
-  const { error } = await supabase.from("reviews").delete().eq("id", req.params.id);
-  if (error) return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
-  return res.json({ ok: true });
+// Delete a review (admin or review owner)
+reviewsRouter.delete("/:id", requireAuth as any, async (req: AuthedRequest, res) => {
+  try {
+    // First check if user is admin or review owner
+    const { data: review } = await supabase
+      .from("reviews")
+      .select("user_id")
+      .eq("id", req.params.id)
+      .single();
+
+    if (!review) {
+      return res.status(404).json({ error: "review_not_found" });
+    }
+
+    // Check if user is admin or review owner
+    const isAdmin = req.user.role === "admin";
+    const isOwner = review.user_id === req.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    const { error } = await supabase.from("reviews").delete().eq("id", req.params.id);
+    if (error) return res.status(500).json({ error: "db_error", detail: dbErrorMessage(error) });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("Review DELETE error:", err);
+    return res.status(500).json({ error: "server_error", detail: String(err) });
+  }
 });

@@ -1004,12 +1004,12 @@ function MyAccountPage() {
         setMessage("Account created successfully! You can now sign in.");
         setIsSignUp(false);
       } else {
-        const data = await apiJson<{ access: string; refresh: string }>("/auth/login", {
+        const data = await apiJson<{ access: string; refresh: string; user?: { id: string } }>("/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
         setAuthTokens(data.access, data.refresh);
-        login();
+        login(data.user?.id);
         if (redirect) {
           navigate({ to: redirect as "/cart" | "/wishlist" });
         } else {
