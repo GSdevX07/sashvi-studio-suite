@@ -246,8 +246,9 @@ function ProductPage() {
         toast.success("Review updated successfully");
       }
     } catch (err: any) {
+      console.error('Edit review error:', err);
       if (err?.error === "already_edited") {
-        toast.error("You have reached the maximum limit for editing this review");
+        toast.error(err?.message || "You have reached the maximum limit for editing this review");
       } else {
         toast.error("Failed to update review");
       }

@@ -157,7 +157,7 @@ reviewsRouter.patch("/:id", requireAuth as any, async (req: AuthedRequest, res) 
 
       // Check if review has already been edited (only one edit allowed)
       if (!isAdmin && review.has_edited) {
-        return res.status(400).json({ error: "already_edited", message: "You can only edit a review once" });
+        return res.status(400).json({ error: "already_edited", message: "You have reached the maximum limit for editing this review" });
       }
 
       updates.rating = body.rating;
