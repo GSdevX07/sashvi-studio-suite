@@ -678,7 +678,16 @@ function ProductPage() {
                     <div className="text-xs text-muted-foreground">
                       {new Date(review.created_at).toLocaleDateString()}
                     </div>
-                    {isLoggedIn && userId === review.user_id && (
+                    {(() => {
+                      console.log('Review buttons check:', {
+                        isLoggedIn,
+                        userId,
+                        reviewUserId: review.user_id,
+                        matches: userId === review.user_id,
+                        review
+                      });
+                      return isLoggedIn && userId === review.user_id;
+                    })() && (
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => startEditReview(review)}
