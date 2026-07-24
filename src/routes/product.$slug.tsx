@@ -247,7 +247,7 @@ function ProductPage() {
       }
     } catch (err: any) {
       if (err?.error === "already_edited") {
-        toast.error("You can only edit a review once");
+        toast.error("You have reached the maximum limit for editing this review");
       } else {
         toast.error("Failed to update review");
       }
