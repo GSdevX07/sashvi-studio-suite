@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/ProductCardSkeleton";
 import { useCatalogProducts } from "@/lib/catalog";
 
 export const Route = createFileRoute("/new-arrivals")({
@@ -18,7 +20,26 @@ export const Route = createFileRoute("/new-arrivals")({
 
 function NewArrivalsPage() {
   const { products } = useCatalogProducts();
+  const [showSkeleton, setShowSkeleton] = useState(true);
   const newProducts = products.filter((p) => p.isNew);
+
+  // Hide skeleton when products are loaded or after 50 seconds
+  useEffect(() => {
+    if (products.length > 0) {
+      const timer = setTimeout(() => setShowSkeleton(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [products]);
+
+  // Auto-refresh after 50 seconds if skeleton is still showing
+  useEffect(() => {
+    if (showSkeleton && products.length === 0) {
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 50000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSkeleton, products]);
   return (
     <Layout>
       <section className="border-b border-border bg-secondary/40">
@@ -32,9 +53,13 @@ function NewArrivalsPage() {
       </section>
       <section className="container-luxe py-12">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
-          {newProducts.map((p) => (
-            <ProductCard key={p.id} product={p} stock={p.stock} />
-          ))}
+          {showSkeleton ? (
+            Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
+          ) : (
+            newProducts.map((p) => (
+              <ProductCard key={p.id} product={p} stock={p.stock} />
+            ))
+          )}
         </div>
       </section>
     </Layout>

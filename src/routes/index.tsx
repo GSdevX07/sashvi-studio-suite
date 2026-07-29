@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Star, Sparkles, Play, ChevronDown, ShoppingBag, Truck, Shield, Gem, Flower2, Trash2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/ProductCardSkeleton";
 import { formatINR, PRODUCTS } from "@/lib/products";
 import { useCatalogProducts } from "@/lib/catalog";
 import { useRealtime } from "@/lib/realtime-context";
@@ -77,6 +78,7 @@ function Home() {
   const [instagramFeed, setInstagramFeed] = useState<InstagramFeedItem[]>([]);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [myReviews, setMyReviews] = useState<any[]>([]);
+  const [showSkeleton, setShowSkeleton] = useState(true);
   const reviewsScrollRef = useRef<HTMLDivElement>(null);
   const newArrivals = products.filter((p) => p.isNew).slice(0, 6);
   const featured = products.filter((p) => p.isFeatured).slice(0, 4);
@@ -157,6 +159,24 @@ function Home() {
         setMyReviews([]);
       });
   }, [isLoggedIn]);
+
+  // Hide skeleton when products are loaded or after 50 seconds
+  useEffect(() => {
+    if (products.length > 0) {
+      const timer = setTimeout(() => setShowSkeleton(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [products]);
+
+  // Auto-refresh after 50 seconds if skeleton is still showing
+  useEffect(() => {
+    if (showSkeleton && products.length === 0) {
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 50000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSkeleton, products]);
 
   return (
     <Layout>
@@ -425,11 +445,19 @@ function Home() {
       <section className="container-luxe py-8 sm:py-12">
         <SectionHeading eyebrow="Just In" title="New Arrivals" link="/new-arrivals" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 overflow-x-auto sm:overflow-visible flex sm:grid pb-4 sm:pb-0 scrollbar-hide">
-          {newArrivals.map((p) => (
-            <div key={p.id} className="min-w-[calc(50%-0.375rem)] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
-              <ProductCard product={p} stock={p.stock} />
-            </div>
-          ))}
+          {showSkeleton ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="min-w-[calc(50%-0.375rem)] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
+                <ProductCardSkeleton />
+              </div>
+            ))
+          ) : (
+            newArrivals.map((p) => (
+              <div key={p.id} className="min-w-[calc(50%-0.375rem)] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
+                <ProductCard product={p} stock={p.stock} />
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -437,11 +465,19 @@ function Home() {
       <section className="container-luxe py-8 sm:py-12">
         <SectionHeading eyebrow="Customer Favorites" title="Best Sellers" link="/best-sellers" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 overflow-x-auto sm:overflow-visible flex sm:grid pb-4 sm:pb-0 scrollbar-hide">
-          {bestSellers.map((p) => (
-            <div key={p.id} className="min-w-[calc(50%-0.375rem)] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
-              <ProductCard product={p} stock={p.stock} />
-            </div>
-          ))}
+          {showSkeleton ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="min-w-[calc(50%-0.375rem)] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
+                <ProductCardSkeleton />
+              </div>
+            ))
+          ) : (
+            bestSellers.map((p) => (
+              <div key={p.id} className="min-w-[calc(50%-0.375rem)] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
+                <ProductCard product={p} stock={p.stock} />
+              </div>
+            ))
+          )}
         </div>
       </section>
 

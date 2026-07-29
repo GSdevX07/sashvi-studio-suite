@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/ProductCardSkeleton";
 import { JEWELLERY_CATEGORIES, sortProducts } from "@/lib/products";
 import { useCatalogProducts, useCategoryFilters } from "@/lib/catalog";
 import { CategoryShell } from "@/components/CategoryShell";
@@ -34,6 +36,7 @@ export const Route = createFileRoute("/jewellery")({
 function JewelleryPage() {
   const { tag, sort, minPrice, maxPrice } = Route.useSearch();
   const { products: all } = useCatalogProducts("jewellery");
+  const [showSkeleton, setShowSkeleton] = useState(true);
   const dbFilters = useCategoryFilters("jewellery");
   const filters = dbFilters.length > 0 ? dbFilters : JEWELLERY_CATEGORIES;
   const filtered = all.filter((p) => {
@@ -43,6 +46,24 @@ function JewelleryPage() {
     return matchesTag && matchesMinPrice && matchesMaxPrice;
   });
   const products = sortProducts(filtered, sort || "featured");
+
+  // Hide skeleton when products are loaded or after 50 seconds
+  useEffect(() => {
+    if (all.length > 0) {
+      const timer = setTimeout(() => setShowSkeleton(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [all]);
+
+  // Auto-refresh after 50 seconds if skeleton is still showing
+  useEffect(() => {
+    if (showSkeleton && all.length === 0) {
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 50000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSkeleton, all]);
 
   return (
     <Layout>
@@ -57,7 +78,11 @@ function JewelleryPage() {
         maxPrice={maxPrice}
         basePath="/jewellery"
       >
-        {products.length > 0 ? (
+        {showSkeleton ? (
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
+          </div>
+        ) : products.length > 0 ? (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => (
               <ProductCard key={p.id} product={p} stock={p.stock} />
