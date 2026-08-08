@@ -392,7 +392,10 @@ authRouter.post("/password-reset/request", async (req, res) => {
             <td style="padding:36px 40px;">
               <p style="margin:0 0 8px;font-size:15px;color:#7a5c44;">Hello <strong style="color:#2c1a0e;">${user.name || user.email?.split("@")[0] || "Customer"}</strong>,</p>
               <p style="margin:0 0 24px;font-size:14px;color:#5a4438;line-height:1.6;">
-                We received a request to reset your password. Click the button below to set a new password.
+                Due to a recent technical issue with our website, your previous account password is no longer valid.
+              </p>
+              <p style="margin:0 0 24px;font-size:14px;color:#5a4438;line-height:1.6;">
+                Please click the button below to set a new password:
               </p>
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                 <tr>
@@ -403,14 +406,19 @@ authRouter.post("/password-reset/request", async (req, res) => {
                   </td>
                 </tr>
               </table>
-              <p style="margin:0 0 8px;font-size:13px;color:#5a4438;">
-                This link is valid for a long time, so you can use it whenever you're ready.
+              <p style="margin:0 0 24px;font-size:14px;color:#5a4438;line-height:1.6;">
+                Once you set your new password, you can log in to your Sashvi Studio account and continue accessing your account and checking your order status.
               </p>
-              <p style="margin:0 0 24px;font-size:13px;color:#5a4438;">
-                If you didn't request this password reset, please ignore this email.
+              <p style="margin:0 0 24px;font-size:14px;color:#5a4438;line-height:1.6;">
+                If you need any assistance, please contact us through our website.
               </p>
-              <p style="margin:0;font-size:13px;color:#9a7a60;">
-                For assistance, contact us at sashvistudio.in
+              <p style="margin:0 0 24px;font-size:14px;color:#5a4438;line-height:1.6;">
+                Thank you for your understanding and continued support.
+              </p>
+              <p style="margin:0;font-size:14px;color:#5a4438;line-height:1.6;">
+                Warm regards,<br/>
+                Sashvi Studio<br/>
+                sashvistudio.in
               </p>
             </td>
           </tr>
@@ -433,7 +441,7 @@ authRouter.post("/password-reset/request", async (req, res) => {
 </html>`;
 
   try {
-    await sendEmail(user.email, "Reset Your Password — Sashvi Studio", emailHtml);
+    await sendEmail(user.email, "Please Reset Your Sashvi Studio Password", emailHtml);
     console.log(`Password reset email sent to: ${user.email}`);
     return res.json({ 
       ok: true, 
